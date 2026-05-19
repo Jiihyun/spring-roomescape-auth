@@ -1,17 +1,17 @@
-package roomescape.member;
+package roomescape.auth.exception;
 
 import org.springframework.http.HttpStatus;
 import roomescape.exception.ErrorCode;
 
-public enum MemberErrorCode implements ErrorCode {
-    
-    MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "해당 이메일을 지닌 멤버가 이미 존재합니다."),
+public enum AuthErrorCode implements ErrorCode {
+
+    UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     ;
 
     private final HttpStatus httpStatus;
     private final String message;
 
-    MemberErrorCode(HttpStatus httpStatus, String message) {
+    AuthErrorCode(HttpStatus httpStatus, String message) {
         this.httpStatus = httpStatus;
         this.message = message;
     }
