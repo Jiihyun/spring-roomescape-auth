@@ -22,8 +22,7 @@ public class AuthService {
 
     public LoginMember login(LoginRequest request) {
         Member member = memberDao.findByEmail(request.email())
-                .orElseThrow(() ->
-                        new UnauthorizedException(AuthErrorCode.INVALID_LOGIN));
+                .orElseThrow(() -> new UnauthorizedException(AuthErrorCode.INVALID_LOGIN));
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
             throw new UnauthorizedException(AuthErrorCode.INVALID_LOGIN);

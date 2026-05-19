@@ -2,6 +2,8 @@ package roomescape.member.dao;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -42,6 +44,24 @@ public class MemberDao {
         Number generatedId = jdbcInsert.executeAndReturnKey(parameters);
 
         return member.createWithId(generatedId.longValue());
+    }
+
+    public Optional<Member> findByEmail(String email) {
+        String sql = """
+                SELECT id,
+                       name,
+                       email,
+                       password,
+                       role
+                FROM member
+                WHERE email = ?
+                """;
+
+        try {
+            return Optional.of(jdbcTemplate.queryForObject(sql, ROW_MAPPER, email));
+        } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
+            return Optional.empty();
+        }
     }
 
     public boolean existsByEmail(String email) {
