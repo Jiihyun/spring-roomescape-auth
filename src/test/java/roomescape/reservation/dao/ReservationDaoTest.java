@@ -11,14 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.dao.ThemeDao;
 
 @JdbcTest
-@Import({ReservationDao.class, ReservationTimeDao.class, ThemeDao.class})
+@Import({ReservationDao.class, ReservationTimeDao.class, ThemeDao.class, MemberDao.class})
 class ReservationDaoTest {
 
     @Autowired
@@ -27,15 +30,18 @@ class ReservationDaoTest {
     private ReservationTimeDao timeDao;
     @Autowired
     private ThemeDao themeDao;
+    @Autowired
+    private MemberDao memberDao;
 
     @Test
     void 예약을_생성한다() {
         // given
         ReservationTime savedReservationTime = saveReservationTime(LocalTime.of(10, 0));
         Theme savedTheme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
+        Member savedMember = saveMember("브라운", "brown@email.com", "password");
 
         LocalDate date = LocalDate.of(2026, 5, 5);
-        Reservation reservation = new Reservation("브라운", date, savedReservationTime, savedTheme);
+        Reservation reservation = new Reservation(savedMember, date, savedReservationTime, savedTheme);
 
         // when
         Reservation savedReservation = reservationDao.save(reservation);
@@ -43,7 +49,7 @@ class ReservationDaoTest {
         // then
         assertAll(
                 () -> assertThat(savedReservation.getId()).isNotNull(),
-                () -> assertThat(savedReservation.getName()).isEqualTo(reservation.getName()),
+                () -> assertThat(savedReservation.getMember()).isEqualTo(reservation.getMember()),
                 () -> assertThat(savedReservation.getDate()).isEqualTo(reservation.getDate()),
                 () -> assertThat(savedReservation.getTime()).isEqualTo(reservation.getTime()),
                 () -> assertThat(savedReservation.getTheme()).isEqualTo(reservation.getTheme())
@@ -58,11 +64,17 @@ class ReservationDaoTest {
 
         LocalDate date = LocalDate.of(2026, 5, 5);
 
-        saveReservation("브라운", date, savedReservationTime, savedTheme);
-        saveReservation("로지", date, savedReservationTime, savedTheme);
-        saveReservation("러키", date, savedReservationTime, savedTheme);
-        saveReservation("러로", date, savedReservationTime, savedTheme);
-        saveReservation("밤밤", date, savedReservationTime, savedTheme);
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+        Member logi = saveMember("로지", "logi@email.com", "password");
+        Member lucky = saveMember("러키", "lucky@email.com", "password");
+        Member roro = saveMember("러로", "roro@email.com", "password");
+        Member bambam = saveMember("밤밤", "bambam@email.com", "password");
+
+        saveReservation(brown, date, savedReservationTime, savedTheme);
+        saveReservation(logi, date, savedReservationTime, savedTheme);
+        saveReservation(lucky, date, savedReservationTime, savedTheme);
+        saveReservation(roro, date, savedReservationTime, savedTheme);
+        saveReservation(bambam, date, savedReservationTime, savedTheme);
 
         // when
         List<Reservation> reservations = reservationDao.findAll();
@@ -70,7 +82,7 @@ class ReservationDaoTest {
         // then
         assertAll(
                 () -> assertThat(reservations).hasSize(5),
-                () -> assertThat(reservations.getFirst().getName()).isEqualTo("브라운"),
+                () -> assertThat(reservations.getFirst().getMember().getName()).isEqualTo("브라운"),
                 () -> assertThat(reservations.getFirst().getDate()).isEqualTo(date),
 
                 () -> assertThat(reservations.getFirst().getTime().getId()).isEqualTo(savedReservationTime.getId()),
@@ -92,12 +104,16 @@ class ReservationDaoTest {
 
         Theme theme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
 
-        saveReservation("브라운", LocalDate.of(2026, 5, 5), time10, theme);
-        saveReservation("브라운", LocalDate.of(2026, 5, 7), time20, theme);
-        saveReservation("브라운", LocalDate.of(2026, 5, 7), time22, theme);
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+        Member logi = saveMember("로지", "logi@email.com", "password");
+        Member lucky = saveMember("러키", "lucky@email.com", "password");
 
-        saveReservation("로지", LocalDate.of(2026, 5, 8), time22, theme);
-        saveReservation("러키", LocalDate.of(2026, 5, 9), time22, theme);
+        saveReservation(brown, LocalDate.of(2026, 5, 5), time10, theme);
+        saveReservation(brown, LocalDate.of(2026, 5, 7), time20, theme);
+        saveReservation(brown, LocalDate.of(2026, 5, 7), time22, theme);
+
+        saveReservation(logi, LocalDate.of(2026, 5, 8), time22, theme);
+        saveReservation(lucky, LocalDate.of(2026, 5, 9), time22, theme);
 
         // when
         List<Reservation> reservations = reservationDao.findAllByName("브라운");
@@ -107,8 +123,8 @@ class ReservationDaoTest {
                 () -> assertThat(reservations).hasSize(3),
 
                 () -> assertThat(reservations)
-                        .extracting(Reservation::getName)
-                        .containsOnly("브라운"),
+                        .extracting(Reservation::getMember)
+                        .containsOnly(brown),
 
                 () -> assertThat(reservations)
                         .extracting(
@@ -135,7 +151,8 @@ class ReservationDaoTest {
         LocalDate date = LocalDate.of(2026, 5, 5);
         LocalDate otherDate = LocalDate.of(2026, 5, 6);
 
-        saveReservation("브라운", date, savedReservationTime, savedTheme);
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+        saveReservation(brown, date, savedReservationTime, savedTheme);
 
         // when & then
         assertAll(
@@ -174,15 +191,18 @@ class ReservationDaoTest {
         Theme originalTheme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
         Theme alreadyReservedTheme = saveTheme("방탈출2", "밤밤과 러로의 방탈출", "https:fsof/sdafjifdsmmff");
 
+        Member lucky = saveMember("러키", "lucky@email.com", "password");
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+
         Reservation myReservation = saveReservation(
-                "러키",
+                lucky,
                 LocalDate.of(2026, 5, 10),
                 originalTime,
                 originalTheme
         );
 
         saveReservation(
-                "브라운",
+                brown,
                 LocalDate.of(2026, 5, 12),
                 alreadyReservedTime,
                 alreadyReservedTheme
@@ -206,7 +226,8 @@ class ReservationDaoTest {
         ReservationTime reservationTime = saveReservationTime(LocalTime.of(10, 0));
         Theme theme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
         LocalDate date = LocalDate.of(2026, 5, 10);
-        Reservation existReservation = saveReservation("브라운", date, reservationTime, theme);
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+        Reservation existReservation = saveReservation(brown, date, reservationTime, theme);
 
         // when
         boolean exists = reservationDao.existsByThemeAndDateAndTimeAndIdNot(
@@ -229,8 +250,10 @@ class ReservationDaoTest {
         Theme originalTheme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
         Theme changedTheme = saveTheme("방탈출2", "밤밤과 러로의 방탈출", "https:fsof/sdafjifdsmmff");
 
+        Member brown = saveMember("브라운", "brown@email.com", "password");
+
         Reservation savedReservation = saveReservation(
-                "브라운",
+                brown,
                 LocalDate.of(2026, 5, 5),
                 originalTime,
                 originalTheme
@@ -238,7 +261,7 @@ class ReservationDaoTest {
 
         Reservation changedReservation = new Reservation(
                 savedReservation.getId(),
-                "브라운",
+                brown,
                 LocalDate.of(2026, 5, 10),
                 changedTime,
                 changedTheme
@@ -253,7 +276,7 @@ class ReservationDaoTest {
         assertThat(foundReservation)
                 .extracting(
                         Reservation::getId,
-                        Reservation::getName,
+                        Reservation::getMember,
                         Reservation::getDate,
                         reservation -> reservation.getTime().getId(),
                         reservation -> reservation.getTime().getStartAt(),
@@ -264,7 +287,7 @@ class ReservationDaoTest {
                 )
                 .containsExactly(
                         savedReservation.getId(),
-                        "브라운",
+                        brown,
                         LocalDate.of(2026, 5, 10),
                         changedTime.getId(),
                         changedTime.getStartAt(),
@@ -282,7 +305,8 @@ class ReservationDaoTest {
         Theme savedTheme = saveTheme("방탈출1", "로지와 러키의 방탈출", "https:fsof/ommff");
         LocalDate date = LocalDate.of(2026, 5, 5);
 
-        Reservation savedReservation = saveReservation("예약1", date, savedReservationTime, savedTheme);
+        Member member = saveMember("예약자", "member1@email.com", "password");
+        Reservation savedReservation = saveReservation(member, date, savedReservationTime, savedTheme);
 
         // when
         reservationDao.delete(savedReservation.getId());
@@ -302,8 +326,13 @@ class ReservationDaoTest {
         return themeDao.save(theme);
     }
 
-    private Reservation saveReservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        Reservation reservation = new Reservation(name, date, time, theme);
+    private Member saveMember(String name, String email, String password) {
+        Member member = new Member(null, name, email, password, Role.USER);
+        return memberDao.save(member);
+    }
+
+    private Reservation saveReservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
+        Reservation reservation = new Reservation(member, date, time, theme);
         return reservationDao.save(reservation);
     }
 }

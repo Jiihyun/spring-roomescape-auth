@@ -3,6 +3,7 @@ package roomescape.reservation.domain;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import roomescape.member.domain.Member;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.reservation.exception.ReservationException;
@@ -13,15 +14,15 @@ public class Reservation {
     private static final int RESERVATION_CHANGE_DEADLINE_PASSED = 1;
 
     private Long id;
-    private final String name;
+    private final Member member;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
-    public static Reservation createFutureReservation(String name, LocalDate date,
+    public static Reservation createFutureReservation(Member member, LocalDate date,
                                                       ReservationTime time, Theme theme, LocalDateTime now) {
         validateNotPastDateTime(date, time, now);
-        return new Reservation(null, name, date, time, theme);
+        return new Reservation(null, member, date, time, theme);
     }
 
     private static void validateNotPastDateTime(LocalDate date, ReservationTime time, LocalDateTime now) {
@@ -31,20 +32,20 @@ public class Reservation {
         }
     }
 
-    public Reservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        this(null, name, date, time, theme);
+    public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
+        this(null, member, date, time, theme);
     }
 
-    public Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
+    public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme) {
         this.id = id;
-        this.name = name;
+        this.member = member;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
     public Reservation createWithId(long id) {
-        return new Reservation(id, this.name, this.date, this.time, this.theme);
+        return new Reservation(id, this.member, this.date, this.time, this.theme);
     }
 
     public boolean isNotModifiableAt(LocalDateTime now) {
@@ -60,8 +61,8 @@ public class Reservation {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Member getMember() {
+        return member;
     }
 
     public LocalDate getDate() {
@@ -86,7 +87,7 @@ public class Reservation {
         if (id != null && reservation.id != null) {
             return Objects.equals(id, reservation.id);
         }
-        return Objects.equals(name, reservation.name)
+        return Objects.equals(member, reservation.member)
                 && Objects.equals(date, reservation.date) && Objects.equals(time, reservation.time)
                 && Objects.equals(theme, reservation.theme);
     }
@@ -96,6 +97,6 @@ public class Reservation {
         if (id != null) {
             return Objects.hash(id);
         }
-        return Objects.hash(name, date, time, theme);
+        return Objects.hash(member, date, time, theme);
     }
 }

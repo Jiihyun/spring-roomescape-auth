@@ -12,7 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import roomescape.ServiceTest;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
 import roomescape.reservation.dao.ReservationDao;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.theme.dao.ThemeDao;
 import roomescape.reservation.domain.Reservation;
@@ -41,6 +44,9 @@ class ReservationTimeServiceTest extends ServiceTest {
 
     @Autowired
     private ThemeDao themeDao;
+
+    @Autowired
+    private MemberDao memberDao;
 
     @Autowired
     private Clock clock;
@@ -80,8 +86,10 @@ class ReservationTimeServiceTest extends ServiceTest {
         ReservationTime reservedTime = saveReservationTime(LocalTime.of(10, 0));
         ReservationTime notReservedTime = saveReservationTime(LocalTime.of(11, 0));
 
+        Member member = saveMember("러키");
+
         Reservation reservation = new Reservation(
-                "예약1",
+                member,
                 date,
                 reservedTime,
                 theme
@@ -158,8 +166,9 @@ class ReservationTimeServiceTest extends ServiceTest {
     void 예약시간_삭제시_관련_예약이_존재하면_예외를_반환한다() {
         // given
         ReservationTime reservationTime = saveReservationTime(LocalTime.of(10, 0));
+        Member member = saveMember("러키");
         Reservation reservation = new Reservation(
-                "예약1",
+                member,
                 LocalDate.of(2026, 5, 8),
                 reservationTime,
                 saveTheme("테마1")
@@ -188,5 +197,10 @@ class ReservationTimeServiceTest extends ServiceTest {
     private ReservationTime saveReservationTime(LocalTime startAt) {
         ReservationTime reservationTime = new ReservationTime(startAt);
         return reservationTimeDao.save(reservationTime);
+    }
+
+    private Member saveMember(String name) {
+        Member member = new Member(null, name, name + "@email.com", "password", Role.USER);
+        return memberDao.save(member);
     }
 }

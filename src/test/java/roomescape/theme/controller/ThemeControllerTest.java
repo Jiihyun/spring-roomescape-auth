@@ -221,11 +221,20 @@ class ThemeControllerTest extends AcceptanceTest {
     }
 
     private void saveReservationFixture(String name, LocalDate date, long timeId, long themeId) {
+        String checkMemberSql = "SELECT count(*) FROM member WHERE name = ?";
+        Integer count = jdbcTemplate.queryForObject(checkMemberSql, Integer.class, name);
+
+        if (count == 0) {
+            String memberSql = "INSERT INTO member (name, email, password, role) VALUES (?, ?, 'password', 'USER')";
+            jdbcTemplate.update(memberSql, name, name + "@email.com");
+        }
+        long memberId = jdbcTemplate.queryForObject("SELECT id FROM member WHERE name = ?", Long.class, name);
+
         String sql = """
-                INSERT INTO reservation (name, date, time_id, theme_id)
+                INSERT INTO reservation (member_id, date, time_id, theme_id)
                 VALUES (?, ?, ?, ?)
                 """;
 
-        jdbcTemplate.update(sql, name, date, timeId, themeId);
+        jdbcTemplate.update(sql, memberId, date, timeId, themeId);
     }
 }

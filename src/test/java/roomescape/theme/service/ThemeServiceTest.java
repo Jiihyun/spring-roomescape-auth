@@ -12,7 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import roomescape.ServiceTest;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
 import roomescape.reservation.dao.ReservationDao;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.theme.dao.ThemeDao;
 import roomescape.reservation.domain.Reservation;
@@ -36,6 +39,9 @@ class ThemeServiceTest extends ServiceTest {
 
     @Autowired
     private ThemeDao themeDao;
+
+    @Autowired
+    private MemberDao memberDao;
 
     @Autowired
     private Clock clock;
@@ -132,21 +138,23 @@ class ThemeServiceTest extends ServiceTest {
         ReservationTime time11 = saveReservationTime(LocalTime.of(11, 0));
         ReservationTime time12 = saveReservationTime(LocalTime.of(12, 0));
 
+        Member member = saveMember("예약자");
+
         // 인기 테마: 조회 기간 내 예약 3개
-        saveReservation("예약자일", fixedToday.minusDays(1), time10, popularTheme);
-        saveReservation("예약자이", fixedToday.minusDays(2), time11, popularTheme);
-        saveReservation("예약자삼", fixedToday.minusDays(3), time12, popularTheme);
+        saveReservation(member, fixedToday.minusDays(1), time10, popularTheme);
+        saveReservation(member, fixedToday.minusDays(2), time11, popularTheme);
+        saveReservation(member, fixedToday.minusDays(3), time12, popularTheme);
 
         // 보통 테마: 조회 기간 내 예약 2개
-        saveReservation("예약자사", fixedToday.minusDays(1), time10, normalTheme);
-        saveReservation("예약자오", fixedToday.minusDays(2), time11, normalTheme);
+        saveReservation(member, fixedToday.minusDays(1), time10, normalTheme);
+        saveReservation(member, fixedToday.minusDays(2), time11, normalTheme);
 
         // 비인기 테마: 조회 기간 내 예약 1개
-        saveReservation("예약자육", fixedToday.minusDays(1), time10, unpopularTheme);
+        saveReservation(member, fixedToday.minusDays(1), time10, unpopularTheme);
 
         // 조회 기간 밖 예약: 순위에 반영되면 안 됨
-        saveReservation("예약자칠", fixedToday, time10, unpopularTheme);
-        saveReservation("예약자팔", fixedToday.minusDays(8), time11, unpopularTheme);
+        saveReservation(member, fixedToday, time10, unpopularTheme);
+        saveReservation(member, fixedToday.minusDays(8), time11, unpopularTheme);
 
         // when
         List<ThemeResponse> rankings = themeService.getThemeRankings();
@@ -200,9 +208,10 @@ class ThemeServiceTest extends ServiceTest {
         // given
         Theme theme = saveTheme("테마1");
         ReservationTime reservationTime = saveReservationTime(LocalTime.of(10, 0));
+        Member member = saveMember("러키");
 
         Reservation reservation = new Reservation(
-                "예약1",
+                member,
                 LocalDate.of(2026, 5, 8),
                 reservationTime,
                 theme
@@ -229,14 +238,19 @@ class ThemeServiceTest extends ServiceTest {
         return reservationTimeDao.save(reservationTime);
     }
 
+    private Member saveMember(String name) {
+        Member member = new Member(null, name, name + "@email.com", "password", Role.USER);
+        return memberDao.save(member);
+    }
+
     private Reservation saveReservation(
-            String name,
+            Member member,
             LocalDate date,
             ReservationTime reservationTime,
             Theme theme
     ) {
         Reservation reservation = new Reservation(
-                name,
+                member,
                 date,
                 reservationTime,
                 theme

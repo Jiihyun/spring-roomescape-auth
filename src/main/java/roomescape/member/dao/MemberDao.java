@@ -64,6 +64,24 @@ public class MemberDao {
         }
     }
 
+    public Optional<Member> findById(long id) {
+        String sql = """
+                SELECT id,
+                       name,
+                       email,
+                       password,
+                       role
+                FROM member
+                WHERE id = ?
+                """;
+
+        try {
+            return Optional.of(jdbcTemplate.queryForObject(sql, ROW_MAPPER, id));
+        } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
+            return Optional.empty();
+        }
+    }
+
     public boolean existsByEmail(String email) {
         String sql = """
                 SELECT EXISTS (

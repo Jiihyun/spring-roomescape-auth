@@ -45,4 +45,30 @@ public class Member {
     public Role getRole() {
         return role;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Member member = (Member) o;
+        if (id != null && member.id != null) {
+            return java.util.Objects.equals(id, member.id);
+        }
+        return java.util.Objects.equals(name, member.name) &&
+                java.util.Objects.equals(email, member.email) &&
+                java.util.Objects.equals(role, member.role);
+    }
+
+    @Override
+    public int hashCode() {
+        if (id != null) {
+            return java.util.Objects.hash(id);
+        }
+        return java.util.Objects.hash(name, email, role);
+    }
 }

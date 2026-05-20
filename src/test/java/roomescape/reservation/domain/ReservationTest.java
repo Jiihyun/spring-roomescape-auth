@@ -10,6 +10,7 @@ import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import roomescape.member.domain.Member;
 import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.reservation.exception.ReservationException;
 import roomescape.reservationtime.domain.ReservationTime;
@@ -24,10 +25,11 @@ class ReservationTest {
         LocalDate pastDate = now.toLocalDate().minusDays(1);
         ReservationTime reservationTime = new ReservationTime(1L, LocalTime.of(11, 0));
         Theme theme = new Theme(1L, "테마", "설명설명설명설명설명설명", "https://sdfsd.com");
+        Member member = Member.createUser("예약자", "email@email.com", "password");
 
         // when & then
         assertThatThrownBy(() -> Reservation.createFutureReservation(
-                "예약자",
+                member,
                 pastDate,
                 reservationTime,
                 theme,
@@ -44,10 +46,11 @@ class ReservationTest {
         LocalDate today = now.toLocalDate();
         ReservationTime pastTime = new ReservationTime(1L, LocalTime.of(10, 0));
         Theme theme = new Theme(1L, "테마", "설명설명설명설명설명설명", "https://sdfsd.com");
+        Member member = Member.createUser("예약자", "email@email.com", "password");
 
         // when & then
         assertThatThrownBy(() -> Reservation.createFutureReservation(
-                "예약자",
+                member,
                 today,
                 pastTime,
                 theme,
@@ -65,9 +68,10 @@ class ReservationTest {
     })
     void 예약_삭제_하려는_시간이_마감_기한을_지났는지_확인한다(String nowText, boolean expected) {
         // given
+        Member member = Member.createUser("브라운", "email@email.com", "password");
         Reservation reservation = new Reservation(
                 1L,
-                "브라운",
+                member,
                 LocalDate.of(2026, 5, 10),
                 new ReservationTime(1L, LocalTime.of(15, 0)),
                 new Theme(1L, "공포의 저택", "무서운 방탈출", "https://image.com")

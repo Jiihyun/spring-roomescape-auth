@@ -39,46 +39,77 @@ VALUES ('공포의 저택', '오래된 저택에서 탈출하세요',
         'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop'),
        ('지하 벙커', '폐쇄된 지하 벙커에서 탈출하세요', 'https://picsum.photos/seed/bunker/400/300');
 
+-- member
+INSERT INTO member (name, email, password, role)
+VALUES ('브라운', 'brown@email.com', 'password123!', 'USER'),
+       ('제임스', 'james@email.com', 'password123!', 'USER'),
+       ('코니', 'connie@email.com', 'password123!', 'USER'),
+       ('샐리', 'sally@email.com', 'password123!', 'USER'),
+       ('네오', 'neo@email.com', 'password123!', 'USER'),
+       ('프로도', 'frodo@email.com', 'password123!', 'USER'),
+       ('무지', 'muzi@email.com', 'password123!', 'USER'),
+       ('어피치', 'apeach@email.com', 'password123!', 'USER'),
+       ('레오나드', 'leonard@email.com', 'password123!', 'USER'),
+       ('문', 'moon@email.com', 'password123!', 'USER'),
+       ('포비', 'pobi@email.com', 'password123!', 'USER'),
+       ('크롱', 'crong@email.com', 'password123!', 'USER'),
+       ('루피', 'loopy@email.com', 'password123!', 'USER'),
+       ('에디', 'eddy@email.com', 'password123!', 'USER'),
+       ('패티', 'petty@email.com', 'password123!', 'USER'),
+       ('해리', 'harry@email.com', 'password123!', 'USER'),
+       ('로디', 'roady@email.com', 'password123!', 'USER'),
+       ('뽀로로', 'pororo@email.com', 'password123!', 'USER'),
+       ('타요', 'tayo@email.com', 'password123!', 'USER'),
+       ('로기', 'rogi@email.com', 'password123!', 'USER'),
+       ('라니', 'rani@email.com', 'password123!', 'USER'),
+       ('가니', 'gani@email.com', 'password123!', 'USER'),
+       ('시투', 'citu@email.com', 'password123!', 'USER'),
+       ('하나', 'hana@email.com', 'password123!', 'USER'),
+       ('토토로', 'totoro@email.com', 'password123!', 'USER'),
+       ('지브리', 'ghibli@email.com', 'password123!', 'USER'),
+       ('카논', 'kanon@email.com', 'password123!', 'USER'),
+       ('치히로', 'chihiro@email.com', 'password123!', 'USER');
+
 -- reservation
 -- 인기 테마 산정 기준: 2026-05-15 기준 최근 7일(05-08 ~ 05-14)
-INSERT INTO reservation (name, `date`, time_id, theme_id)
-VALUES ('브라운', '2026-05-14', 1, 1),
-       ('제임스', '2026-05-14', 2, 1),
-       ('코니', '2026-05-13', 3, 1),
-       ('샐리', '2026-05-13', 4, 1),
-       ('네오', '2026-05-12', 5, 1),
-       ('프로도', '2026-05-12', 1, 1),
-       ('무지', '2026-05-11', 2, 1),
-       ('어피치', '2026-05-10', 3, 1),
-       ('레오나드', '2026-05-09', 4, 1),
-       ('문', '2026-05-08', 5, 1);
+INSERT INTO reservation (member_id, `date`, time_id, theme_id)
+VALUES (1, '2026-05-14', 1, 1),
+       (2, '2026-05-14', 2, 1),
+       (3, '2026-05-13', 3, 1),
+       (4, '2026-05-13', 4, 1),
+       (5, '2026-05-12', 5, 1),
+       (6, '2026-05-12', 1, 1),
+       (7, '2026-05-11', 2, 1),
+       (8, '2026-05-10', 3, 1),
+       (9, '2026-05-09', 4, 1),
+       (10, '2026-05-08', 5, 1);
 
-INSERT INTO reservation (name, `date`, time_id, theme_id)
-VALUES ('포비', '2026-05-14', 1, 2),
-       ('크롱', '2026-05-14', 2, 2),
-       ('루피', '2026-05-13', 3, 2),
-       ('에디', '2026-05-13', 4, 2),
-       ('패티', '2026-05-12', 5, 2),
-       ('해리', '2026-05-11', 6, 2),
-       ('로디', '2026-05-10', 7, 2),
-       ('뽀로로', '2026-05-09', 1, 2);
+INSERT INTO reservation (member_id, `date`, time_id, theme_id)
+VALUES (11, '2026-05-14', 1, 2),
+       (12, '2026-05-14', 2, 2),
+       (13, '2026-05-13', 3, 2),
+       (14, '2026-05-13', 4, 2),
+       (15, '2026-05-12', 5, 2),
+       (16, '2026-05-11', 6, 2),
+       (17, '2026-05-10', 7, 2),
+       (18, '2026-05-09', 1, 2);
 
-INSERT INTO reservation (name, `date`, time_id, theme_id)
-VALUES ('타요', '2026-05-14', 1, 3),
-       ('로기', '2026-05-13', 2, 3),
-       ('라니', '2026-05-12', 3, 3),
-       ('가니', '2026-05-11', 4, 3),
-       ('시투', '2026-05-10', 5, 3),
-       ('하나', '2026-05-09', 6, 3);
+INSERT INTO reservation (member_id, `date`, time_id, theme_id)
+VALUES (19, '2026-05-14', 1, 3),
+       (20, '2026-05-13', 2, 3),
+       (21, '2026-05-12', 3, 3),
+       (22, '2026-05-11', 4, 3),
+       (23, '2026-05-10', 5, 3),
+       (24, '2026-05-09', 6, 3);
 
-INSERT INTO reservation (name, `date`, time_id, theme_id)
-VALUES ('토토로', '2026-05-14', 1, 4),
-       ('지브리', '2026-05-13', 2, 4),
-       ('카논', '2026-05-12', 3, 4),
-       ('치히로', '2026-05-11', 4, 4);
+INSERT INTO reservation (member_id, `date`, time_id, theme_id)
+VALUES (25, '2026-05-14', 1, 4),
+       (26, '2026-05-13', 2, 4),
+       (27, '2026-05-12', 3, 4),
+       (28, '2026-05-11', 4, 4);
 
 -- 미래 예약 데이터
-INSERT INTO reservation (name, `date`, time_id, theme_id)
-VALUES ('브라운', '2026-05-15', 10, 1),
-       ('제임스', '2026-05-16', 11, 2),
-       ('코니', '2026-05-17', 12, 3);
+INSERT INTO reservation (member_id, `date`, time_id, theme_id)
+VALUES (1, '2026-05-15', 10, 1),
+       (2, '2026-05-16', 11, 2),
+       (3, '2026-05-17', 12, 3);

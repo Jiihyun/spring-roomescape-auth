@@ -6,6 +6,7 @@ import roomescape.exception.ErrorCode;
 public enum MemberErrorCode implements ErrorCode {
     
     MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "해당 이메일을 지닌 멤버가 이미 존재합니다."),
+    MEMBER_NOT_EXISTS(HttpStatus.NOT_FOUND, "존재하지 않는 멤버입니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -5,19 +5,24 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import roomescape.auth.dto.LoginMember;
+import roomescape.member.MemberErrorCode;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
+import roomescape.member.exception.MemberException;
 import roomescape.reservation.dao.ReservationDao;
-import roomescape.reservationtime.dao.ReservationTimeDao;
-import roomescape.theme.dao.ThemeDao;
 import roomescape.reservation.domain.Reservation;
-import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.theme.domain.Theme;
 import roomescape.reservation.dto.request.ReservationRequest;
 import roomescape.reservation.dto.response.ReservationResponse;
 import roomescape.reservation.exception.ReservationErrorCode;
-import roomescape.reservationtime.exception.ReservationTimeErrorCode;
-import roomescape.theme.exception.ThemeErrorCode;
 import roomescape.reservation.exception.ReservationException;
+import roomescape.reservationtime.dao.ReservationTimeDao;
+import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.reservationtime.exception.ReservationTimeErrorCode;
 import roomescape.reservationtime.exception.ReservationTimeException;
+import roomescape.theme.dao.ThemeDao;
+import roomescape.theme.domain.Theme;
+import roomescape.theme.exception.ThemeErrorCode;
 import roomescape.theme.exception.ThemeException;
 
 @Service
@@ -26,21 +31,25 @@ public class ReservationService {
     private final ReservationDao reservationDao;
     private final ReservationTimeDao reservationTimeDao;
     private final ThemeDao themeDao;
+    private final MemberDao memberDao;
     private final Clock clock;
 
-    public ReservationService(ReservationDao reservationDao, ReservationTimeDao reservationTimeDao, ThemeDao themeDao, Clock clock) {
+    public ReservationService(ReservationDao reservationDao, ReservationTimeDao reservationTimeDao,
+                              MemberDao memberDao, ThemeDao themeDao, Clock clock) {
         this.reservationDao = reservationDao;
         this.reservationTimeDao = reservationTimeDao;
         this.themeDao = themeDao;
+        this.memberDao = memberDao;
         this.clock = clock;
     }
 
-    public ReservationResponse create(ReservationRequest request) {
+    public ReservationResponse create(LoginMember loginMember, ReservationRequest request) {
         ReservationTime reservationTime = getTime(request.timeId());
         Theme theme = getTheme(request.themeId());
         LocalDateTime currentDateTime = LocalDateTime.now(clock);
+        Member member = getMember(loginMember);
 
-        Reservation reservation = request.toReservation(reservationTime, theme, currentDateTime);
+        Reservation reservation = request.toReservation(member, reservationTime, theme, currentDateTime);
         validateUniqueReservation(theme.getId(), reservation.getDate(), reservationTime.getId());
 
         Reservation savedReservation = reservationDao.save(reservation);
@@ -64,21 +73,29 @@ public class ReservationService {
                 .orElseThrow(() -> new ThemeException(ThemeErrorCode.THEME_NOT_FOUND));
     }
 
-    public List<ReservationResponse> getReservations() {
+    private Member getMember(LoginMember loginMember) {
+        return memberDao.findById(loginMember.id())
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_EXISTS));
+    }
+
+    public List<ReservationResponse> getReservations(LoginMember loginMember) {
+        getMember(loginMember);
         List<Reservation> reservations = reservationDao.findAll();
         return reservations.stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
 
-    public List<ReservationResponse> getReservationsByName(String name) {
+    public List<ReservationResponse> getReservationsByName(String name, LoginMember loginMember) {
+        getMember(loginMember);
         List<Reservation> reservations = reservationDao.findAllByName(name);
         return reservations.stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
 
-    public ReservationResponse update(long reservationId, ReservationRequest request) {
+    public ReservationResponse update(LoginMember loginMember, long reservationId, ReservationRequest request) {
+        Member member = getMember(loginMember);
         Reservation reservation = getReservation(reservationId);
         validateModifiable(reservation);
 
@@ -88,7 +105,7 @@ public class ReservationService {
         validateUniqueReservationForUpdate(reservationId, theme, request.date(), reservationTime);
 
         Reservation updatedReservation = new Reservation(
-                reservationId, request.name(),
+                reservationId, member,
                 request.date(), reservationTime, theme);
         reservationDao.update(updatedReservation);
         return ReservationResponse.from(updatedReservation);

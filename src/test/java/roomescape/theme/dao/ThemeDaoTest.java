@@ -11,14 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservation.dao.ReservationDao;
 import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.theme.domain.Theme;
 
 @JdbcTest
-@Import({ThemeDao.class, ReservationTimeDao.class, ReservationDao.class})
+@Import({ThemeDao.class, ReservationTimeDao.class, ReservationDao.class, MemberDao.class})
 class ThemeDaoTest {
 
     @Autowired
@@ -29,6 +32,9 @@ class ThemeDaoTest {
 
     @Autowired
     private ReservationDao reservationDao;
+
+    @Autowired
+    private MemberDao memberDao;
 
     @Test
     void 테마를_등록한다() {
@@ -137,107 +143,109 @@ class ThemeDaoTest {
         LocalDate date7 = LocalDate.of(2026, 4, 29);
         LocalDate oldDate = LocalDate.of(2026, 4, 20);
 
+        Member member = saveMember("예약자", "email@email.com", "password");
+
         // theme1: 12건
-        saveReservation("예약자", date1, time1, theme1);
-        saveReservation("예약자", date1, time2, theme1);
-        saveReservation("예약자", date1, time3, theme1);
-        saveReservation("예약자", date1, time4, theme1);
-        saveReservation("예약자", date1, time5, theme1);
-        saveReservation("예약자", date2, time1, theme1);
-        saveReservation("예약자", date2, time2, theme1);
-        saveReservation("예약자", date3, time3, theme1);
-        saveReservation("예약자", date3, time4, theme1);
-        saveReservation("예약자", date4, time5, theme1);
-        saveReservation("예약자", date5, time6, theme1);
-        saveReservation("예약자", date6, time7, theme1);
+        saveReservation(member, date1, time1, theme1);
+        saveReservation(member, date1, time2, theme1);
+        saveReservation(member, date1, time3, theme1);
+        saveReservation(member, date1, time4, theme1);
+        saveReservation(member, date1, time5, theme1);
+        saveReservation(member, date2, time1, theme1);
+        saveReservation(member, date2, time2, theme1);
+        saveReservation(member, date3, time3, theme1);
+        saveReservation(member, date3, time4, theme1);
+        saveReservation(member, date4, time5, theme1);
+        saveReservation(member, date5, time6, theme1);
+        saveReservation(member, date6, time7, theme1);
 
         // theme2: 10건
-        saveReservation("예약자", date1, time1, theme2);
-        saveReservation("예약자", date1, time2, theme2);
-        saveReservation("예약자", date1, time3, theme2);
-        saveReservation("예약자", date2, time4, theme2);
-        saveReservation("예약자", date2, time5, theme2);
-        saveReservation("예약자", date3, time6, theme2);
-        saveReservation("예약자", date3, time7, theme2);
-        saveReservation("예약자", date4, time8, theme2);
-        saveReservation("예약자", date5, time9, theme2);
-        saveReservation("예약자", date6, time1, theme2);
+        saveReservation(member, date1, time1, theme2);
+        saveReservation(member, date1, time2, theme2);
+        saveReservation(member, date1, time3, theme2);
+        saveReservation(member, date2, time4, theme2);
+        saveReservation(member, date2, time5, theme2);
+        saveReservation(member, date3, time6, theme2);
+        saveReservation(member, date3, time7, theme2);
+        saveReservation(member, date4, time8, theme2);
+        saveReservation(member, date5, time9, theme2);
+        saveReservation(member, date6, time1, theme2);
 
         // theme3: 9건
-        saveReservation("예약자", date1, time1, theme3);
-        saveReservation("예약자", date1, time2, theme3);
-        saveReservation("예약자", date1, time3, theme3);
-        saveReservation("예약자", date2, time4, theme3);
-        saveReservation("예약자", date3, time5, theme3);
-        saveReservation("예약자", date4, time6, theme3);
-        saveReservation("예약자", date5, time7, theme3);
-        saveReservation("예약자", date6, time8, theme3);
-        saveReservation("예약자", date7, time9, theme3);
+        saveReservation(member, date1, time1, theme3);
+        saveReservation(member, date1, time2, theme3);
+        saveReservation(member, date1, time3, theme3);
+        saveReservation(member, date2, time4, theme3);
+        saveReservation(member, date3, time5, theme3);
+        saveReservation(member, date4, time6, theme3);
+        saveReservation(member, date5, time7, theme3);
+        saveReservation(member, date6, time8, theme3);
+        saveReservation(member, date7, time9, theme3);
 
         // theme4: 8건
-        saveReservation("예약자", date1, time1, theme4);
-        saveReservation("예약자", date1, time2, theme4);
-        saveReservation("예약자", date2, time3, theme4);
-        saveReservation("예약자", date3, time4, theme4);
-        saveReservation("예약자", date4, time5, theme4);
-        saveReservation("예약자", date5, time6, theme4);
-        saveReservation("예약자", date6, time7, theme4);
-        saveReservation("예약자", date7, time8, theme4);
+        saveReservation(member, date1, time1, theme4);
+        saveReservation(member, date1, time2, theme4);
+        saveReservation(member, date2, time3, theme4);
+        saveReservation(member, date3, time4, theme4);
+        saveReservation(member, date4, time5, theme4);
+        saveReservation(member, date5, time6, theme4);
+        saveReservation(member, date6, time7, theme4);
+        saveReservation(member, date7, time8, theme4);
 
         // theme5: 7건
-        saveReservation("예약자", date1, time1, theme5);
-        saveReservation("예약자", date2, time2, theme5);
-        saveReservation("예약자", date3, time3, theme5);
-        saveReservation("예약자", date4, time4, theme5);
-        saveReservation("예약자", date5, time5, theme5);
-        saveReservation("예약자", date6, time6, theme5);
-        saveReservation("예약자", date7, time7, theme5);
+        saveReservation(member, date1, time1, theme5);
+        saveReservation(member, date2, time2, theme5);
+        saveReservation(member, date3, time3, theme5);
+        saveReservation(member, date4, time4, theme5);
+        saveReservation(member, date5, time5, theme5);
+        saveReservation(member, date6, time6, theme5);
+        saveReservation(member, date7, time7, theme5);
 
         // theme6: 6건
-        saveReservation("예약자", date1, time1, theme6);
-        saveReservation("예약자", date2, time2, theme6);
-        saveReservation("예약자", date3, time3, theme6);
-        saveReservation("예약자", date4, time4, theme6);
-        saveReservation("예약자", date5, time5, theme6);
-        saveReservation("예약자", date6, time6, theme6);
+        saveReservation(member, date1, time1, theme6);
+        saveReservation(member, date2, time2, theme6);
+        saveReservation(member, date3, time3, theme6);
+        saveReservation(member, date4, time4, theme6);
+        saveReservation(member, date5, time5, theme6);
+        saveReservation(member, date6, time6, theme6);
 
         // theme7: 5건
-        saveReservation("예약자", date1, time1, theme7);
-        saveReservation("예약자", date2, time2, theme7);
-        saveReservation("예약자", date3, time3, theme7);
-        saveReservation("예약자", date4, time4, theme7);
-        saveReservation("예약자", date5, time5, theme7);
+        saveReservation(member, date1, time1, theme7);
+        saveReservation(member, date2, time2, theme7);
+        saveReservation(member, date3, time3, theme7);
+        saveReservation(member, date4, time4, theme7);
+        saveReservation(member, date5, time5, theme7);
 
         // theme8: 4건
-        saveReservation("예약자", date1, time1, theme8);
-        saveReservation("예약자", date2, time2, theme8);
-        saveReservation("예약자", date3, time3, theme8);
-        saveReservation("예약자", date4, time4, theme8);
+        saveReservation(member, date1, time1, theme8);
+        saveReservation(member, date2, time2, theme8);
+        saveReservation(member, date3, time3, theme8);
+        saveReservation(member, date4, time4, theme8);
 
         // theme9: 3건
-        saveReservation("예약자", date1, time1, theme9);
-        saveReservation("예약자", date2, time2, theme9);
-        saveReservation("예약자", date3, time3, theme9);
+        saveReservation(member, date1, time1, theme9);
+        saveReservation(member, date2, time2, theme9);
+        saveReservation(member, date3, time3, theme9);
 
         // theme10: 2건
-        saveReservation("예약자", date1, time1, theme10);
-        saveReservation("예약자", date2, time2, theme10);
+        saveReservation(member, date1, time1, theme10);
+        saveReservation(member, date2, time2, theme10);
 
         // theme11: 1건
-        saveReservation("예약자", date1, time1, theme11);
+        saveReservation(member, date1, time1, theme11);
 
         // theme12: 11건 but outside period
-        saveReservation("예약자", oldDate, time1, theme12);
-        saveReservation("예약자", oldDate, time2, theme12);
-        saveReservation("예약자", oldDate, time3, theme12);
-        saveReservation("예약자", oldDate, time4, theme12);
-        saveReservation("예약자", oldDate, time5, theme12);
-        saveReservation("예약자", oldDate, time6, theme12);
-        saveReservation("예약자", oldDate, time7, theme12);
-        saveReservation("예약자", oldDate, time8, theme12);
-        saveReservation("예약자", oldDate, time9, theme12);
-        saveReservation("예약자", oldDate, time1, theme12);
-        saveReservation("예약자", oldDate, time2, theme12);
+        saveReservation(member, oldDate, time1, theme12);
+        saveReservation(member, oldDate, time2, theme12);
+        saveReservation(member, oldDate, time3, theme12);
+        saveReservation(member, oldDate, time4, theme12);
+        saveReservation(member, oldDate, time5, theme12);
+        saveReservation(member, oldDate, time6, theme12);
+        saveReservation(member, oldDate, time7, theme12);
+        saveReservation(member, oldDate, time8, theme12);
+        saveReservation(member, oldDate, time9, theme12);
+        saveReservation(member, oldDate, time1, theme12);
+        saveReservation(member, oldDate, time2, theme12);
     }
 
     private Theme saveTheme(String name, String description, String thumbnail) {
@@ -250,8 +258,13 @@ class ThemeDaoTest {
         return timeDao.save(time);
     }
 
-    private void saveReservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        Reservation reservation = new Reservation(name, date, time, theme);
+    private Member saveMember(String name, String email, String password) {
+        Member member = new Member(null, name, email, password, Role.USER);
+        return memberDao.save(member);
+    }
+
+    private void saveReservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
+        Reservation reservation = new Reservation(member, date, time, theme);
         reservationDao.save(reservation);
     }
 }

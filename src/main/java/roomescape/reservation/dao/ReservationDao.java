@@ -10,7 +10,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import roomescape.member.domain.Member;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.theme.domain.Theme;
 
@@ -30,9 +32,17 @@ public class ReservationDao {
                 resultSet.getString("thumbnail")
         );
 
+        Member member = new Member(
+                resultSet.getLong("member_id"),
+                resultSet.getString("member_name"),
+                resultSet.getString("email"),
+                resultSet.getString("password"),
+                Role.valueOf(resultSet.getString("role"))
+        );
+
         return new Reservation(
                 resultSet.getLong("id"),
-                resultSet.getString("reservation_name"),
+                member,
                 resultSet.getDate("date").toLocalDate(),
                 reservationTime,
                 theme
@@ -51,7 +61,7 @@ public class ReservationDao {
 
     public Reservation save(Reservation reservation) {
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("name", reservation.getName());
+        parameters.put("member_id", reservation.getMember().getId());
         parameters.put("date", reservation.getDate());
         parameters.put("time_id", reservation.getTime().getId());
         parameters.put("theme_id", reservation.getTheme().getId());
@@ -64,8 +74,12 @@ public class ReservationDao {
     public List<Reservation> findAll() {
         String sql = """
                 SELECT r.id, 
-                       r.name as reservation_name, 
                        r.date,
+                       m.id as member_id,
+                       m.name as member_name,
+                       m.email,
+                       m.password,
+                       m.role,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
@@ -73,6 +87,8 @@ public class ReservationDao {
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
+                INNER JOIN member AS m 
+                ON r.member_id = m.id
                 INNER JOIN reservation_time AS rt 
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t 
@@ -84,8 +100,12 @@ public class ReservationDao {
     public List<Reservation> findAllByName(String name) {
         String sql = """
                 SELECT r.id, 
-                       r.name as reservation_name, 
                        r.date,
+                       m.id as member_id,
+                       m.name as member_name,
+                       m.email,
+                       m.password,
+                       m.role,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
@@ -93,11 +113,13 @@ public class ReservationDao {
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
+                INNER JOIN member AS m 
+                ON r.member_id = m.id
                 INNER JOIN reservation_time AS rt 
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t 
                 ON r.theme_id = t.id
-                WHERE r.name = ?
+                WHERE m.name = ?
                 ORDER BY r.date DESC, rt.start_at DESC
                 ;
                 """;
@@ -107,8 +129,12 @@ public class ReservationDao {
     public Optional<Reservation> findById(long reservationId) {
         String sql = """
                 SELECT r.id, 
-                       r.name as reservation_name, 
                        r.date,
+                       m.id as member_id,
+                       m.name as member_name,
+                       m.email,
+                       m.password,
+                       m.role,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
@@ -116,6 +142,8 @@ public class ReservationDao {
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
+                INNER JOIN member AS m 
+                ON r.member_id = m.id
                 INNER JOIN reservation_time AS rt 
                     ON r.time_id = rt.id
                 INNER JOIN theme AS t 
@@ -183,13 +211,13 @@ public class ReservationDao {
     public void update(Reservation reservation) {
         String sql = """
                 UPDATE reservation
-                SET name = ?,
+                SET member_id = ?,
                     date = ?,
                     time_id = ?,
                     theme_id = ?
                 WHERE id = ?
                 """;
-        jdbcTemplate.update(sql, reservation.getName(), reservation.getDate(),
+        jdbcTemplate.update(sql, reservation.getMember().getId(), reservation.getDate(),
                 reservation.getTime().getId(), reservation.getTheme().getId(), reservation.getId());
     }
 

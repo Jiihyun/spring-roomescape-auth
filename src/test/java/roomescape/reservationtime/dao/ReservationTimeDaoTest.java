@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import roomescape.member.dao.MemberDao;
+import roomescape.member.domain.Member;
+import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.dao.dto.ReservationTimeAvailability;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.domain.ReservationTime;
@@ -20,7 +23,7 @@ import roomescape.theme.domain.Theme;
 import roomescape.theme.dao.ThemeDao;
 
 @JdbcTest
-@Import({ReservationDao.class, ReservationTimeDao.class, ThemeDao.class})
+@Import({ReservationDao.class, ReservationTimeDao.class, ThemeDao.class, MemberDao.class})
 class ReservationTimeDaoTest {
 
     @Autowired
@@ -29,6 +32,8 @@ class ReservationTimeDaoTest {
     private ReservationDao reservationDao;
     @Autowired
     private ThemeDao themeDao;
+    @Autowired
+    private MemberDao memberDao;
 
     @Test
     void 예약_시간을_생성한다() {
@@ -91,9 +96,13 @@ class ReservationTimeDaoTest {
         Theme otherTheme = saveTheme("공포방", "밤밤과 러로의 방탈출", "https:fsof/sdafjifdsmmff");
 
         LocalDate date = LocalDate.of(2026, 5, 5);
-        saveReservation("러키", date, savedReservationTime, savedTheme);
-        saveReservation("로지", date, otherReservationTime, otherTheme);
-        saveReservation("러로", date.plusDays(1), otherDateReservationTime, savedTheme);
+        Member lucky = saveMember("러키", "lucky@email.com", "password");
+        Member logi = saveMember("로지", "logi@email.com", "password");
+        Member roro = saveMember("러로", "roro@email.com", "password");
+
+        saveReservation(lucky, date, savedReservationTime, savedTheme);
+        saveReservation(logi, date, otherReservationTime, otherTheme);
+        saveReservation(roro, date.plusDays(1), otherDateReservationTime, savedTheme);
 
         // when
         List<ReservationTimeAvailability> reservationTimesOnCondition = timeDao.findAvailabilitiesByThemeIdAndDate(savedTheme.getId(), date);
@@ -147,8 +156,13 @@ class ReservationTimeDaoTest {
         return themeDao.save(theme);
     }
 
-    private Reservation saveReservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        Reservation reservation = new Reservation(name, date, time, theme);
+    private Member saveMember(String name, String email, String password) {
+        Member member = new Member(null, name, email, password, Role.USER);
+        return memberDao.save(member);
+    }
+
+    private Reservation saveReservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
+        Reservation reservation = new Reservation(member, date, time, theme);
         return reservationDao.save(reservation);
     }
 }
