@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import roomescape.reservation.dao.ReservationDao;
+import roomescape.store.dao.StoreDao;
 import roomescape.theme.dao.ThemeDao;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.dto.request.ThemeRequest;
@@ -20,18 +21,27 @@ public class ThemeService {
 
     private final ThemeDao themeDao;
     private final ReservationDao reservationDao;
+    private final StoreDao storeDao;
     private final Clock clock;
 
-    public ThemeService(ThemeDao themeDao, ReservationDao reservationDao, Clock clock) {
+    public ThemeService(ThemeDao themeDao, ReservationDao reservationDao, StoreDao storeDao, Clock clock) {
         this.themeDao = themeDao;
         this.reservationDao = reservationDao;
+        this.storeDao = storeDao;
         this.clock = clock;
     }
 
     public ThemeResponse create(ThemeRequest request) {
+        validateStoreExists(request.storeId());
         validateUniqueTheme(request.name());
         Theme savedTheme = themeDao.save(request.toTheme());
         return ThemeResponse.from(savedTheme);
+    }
+
+    private void validateStoreExists(long storeId) {
+        if (!storeDao.existsById(storeId)) {
+            throw new ThemeException(ThemeErrorCode.STORE_NOT_FOUND);
+        }
     }
 
     private void validateUniqueTheme(String name) {

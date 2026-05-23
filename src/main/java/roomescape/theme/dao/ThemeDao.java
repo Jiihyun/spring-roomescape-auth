@@ -18,6 +18,7 @@ public class ThemeDao {
     private static final RowMapper<Theme> ROW_MAPPER = (resultSet, rowNum) ->
             new Theme(
                     resultSet.getLong("id"),
+                    resultSet.getLong("store_id"),
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getString("thumbnail")
@@ -35,6 +36,7 @@ public class ThemeDao {
 
     public Theme save(Theme theme) {
         Map<String, Object> parameters = new HashMap<>();
+        parameters.put("store_id", theme.getStoreId());
         parameters.put("name", theme.getName());
         parameters.put("description", theme.getDescription());
         parameters.put("thumbnail", theme.getThumbnail());
@@ -46,7 +48,8 @@ public class ThemeDao {
 
     public Optional<Theme> findById(Long themeId) {
         String sql = """
-                SELECT id, 
+                SELECT id,
+                       store_id,
                        name, 
                        description,
                        thumbnail
@@ -63,7 +66,8 @@ public class ThemeDao {
 
     public List<Theme> findAll() {
         String sql = """
-                SELECT id, 
+                SELECT id,
+                       store_id,
                        name, 
                        description,
                        thumbnail
@@ -75,6 +79,7 @@ public class ThemeDao {
     public List<Theme> findPopularThemesByPeriod(LocalDate startDate, LocalDate endDate) {
         String sql = """
                 SELECT t.id,
+                       t.store_id,
                        t.name,
                        t.description,
                        t.thumbnail
@@ -82,7 +87,7 @@ public class ThemeDao {
                 INNER JOIN theme AS t 
                 ON r.theme_id = t.id
                 WHERE r.date BETWEEN ? AND ?
-                GROUP BY t.id, t.name, t.description, t.thumbnail
+                GROUP BY t.id, t.store_id, t.name, t.description, t.thumbnail
                 ORDER BY COUNT(r.id) DESC
                 LIMIT 10
                 """;

@@ -1,11 +1,15 @@
 package roomescape.theme.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import roomescape.theme.domain.Theme;
 
 public record ThemeRequest(
+        @NotNull(message = "매장 아이디를 입력해 주세요.")
+        Long storeId,
+
         @NotBlank(message = "테마명을 입력해 주세요.")
         @Pattern(
                 regexp = "^[가-힣a-zA-Z0-9 ]{2,30}$",
@@ -25,6 +29,6 @@ public record ThemeRequest(
         String thumbnail
 ) {
     public Theme toTheme() {
-        return new Theme(name, description, thumbnail);
+        return new Theme(null, storeId, name, description, thumbnail);
     }
 }
