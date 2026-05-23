@@ -8,6 +8,22 @@ CREATE TABLE member
     PRIMARY KEY (id)
 );
 
+CREATE TABLE store
+(
+    id   BIGINT      NOT NULL AUTO_INCREMENT,
+    name VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE manager_store
+(
+    member_id BIGINT NOT NULL,
+    store_id  BIGINT NOT NULL,
+    PRIMARY KEY (member_id, store_id),
+    FOREIGN KEY (member_id) REFERENCES member (id),
+    FOREIGN KEY (store_id) REFERENCES store (id)
+);
+
 CREATE TABLE reservation_time
 (
     id       BIGINT NOT NULL AUTO_INCREMENT,
@@ -18,10 +34,12 @@ CREATE TABLE reservation_time
 CREATE TABLE theme
 (
     id          BIGINT       NOT NULL AUTO_INCREMENT,
+    store_id    BIGINT       NOT NULL,
     name        VARCHAR(30)  NOT NULL,
     description VARCHAR(100) NOT NULL,
     thumbnail   VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (store_id) REFERENCES store (id)
 );
 
 CREATE TABLE reservation
