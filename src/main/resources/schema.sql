@@ -15,7 +15,7 @@ CREATE TABLE store
     PRIMARY KEY (id)
 );
 
-CREATE TABLE manager_store
+CREATE TABLE admin_store
 (
     member_id BIGINT NOT NULL,
     store_id  BIGINT NOT NULL,

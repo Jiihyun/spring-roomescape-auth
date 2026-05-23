@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import roomescape.auth.dto.LoginMember;
+import roomescape.auth.exception.AuthErrorCode;
+import roomescape.auth.exception.ForbiddenException;
 import roomescape.member.MemberErrorCode;
 import roomescape.member.dao.MemberDao;
 import roomescape.member.domain.Member;
@@ -20,6 +22,7 @@ import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.exception.ReservationTimeErrorCode;
 import roomescape.reservationtime.exception.ReservationTimeException;
+import roomescape.store.dao.AdminStoreDao;
 import roomescape.theme.dao.ThemeDao;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.exception.ThemeErrorCode;
@@ -32,14 +35,16 @@ public class ReservationService {
     private final ReservationTimeDao reservationTimeDao;
     private final ThemeDao themeDao;
     private final MemberDao memberDao;
+    private final AdminStoreDao adminStoreDao;
     private final Clock clock;
 
     public ReservationService(ReservationDao reservationDao, ReservationTimeDao reservationTimeDao,
-                              MemberDao memberDao, ThemeDao themeDao, Clock clock) {
+                              MemberDao memberDao, ThemeDao themeDao, AdminStoreDao adminStoreDao, Clock clock) {
         this.reservationDao = reservationDao;
         this.reservationTimeDao = reservationTimeDao;
         this.themeDao = themeDao;
         this.memberDao = memberDao;
+        this.adminStoreDao = adminStoreDao;
         this.clock = clock;
     }
 
@@ -80,28 +85,39 @@ public class ReservationService {
 
     public List<ReservationResponse> getReservations(LoginMember loginMember) {
         getMember(loginMember);
-        List<Reservation> reservations = reservationDao.findAll();
+        List<Reservation> reservations = findReservations(loginMember);
         return reservations.stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
 
+    private List<Reservation> findReservations(LoginMember loginMember) {
+        return reservationDao.findAllByAdminId(loginMember.id());
+    }
+
     public List<ReservationResponse> getReservationsByName(String name, LoginMember loginMember) {
         getMember(loginMember);
-        List<Reservation> reservations = reservationDao.findAllByName(name);
+        List<Reservation> reservations = findReservationsByName(name, loginMember);
         return reservations.stream()
                 .map(ReservationResponse::from)
                 .toList();
+    }
+
+    private List<Reservation> findReservationsByName(String name, LoginMember loginMember) {
+        if (loginMember.role().isAdmin()) {
+            return reservationDao.findAllByNameAndMemberId(name, loginMember.id());
+        }
+        return reservationDao.findAllByName(name);
     }
 
     public ReservationResponse update(LoginMember loginMember, long reservationId, ReservationRequest request) {
         Member member = getMember(loginMember);
         Reservation reservation = getReservation(reservationId);
+        validateManagerStore(loginMember, reservation.getTheme());
         validateModifiable(reservation);
 
         ReservationTime reservationTime = getTime(request.timeId());
         Theme theme = getTheme(request.themeId());
-        validateNotPastDateTime(request.date(), reservationTime, LocalDateTime.now(clock));
         validateUniqueReservationForUpdate(reservationId, theme, request.date(), reservationTime);
 
         Reservation updatedReservation = new Reservation(
@@ -111,10 +127,14 @@ public class ReservationService {
         return ReservationResponse.from(updatedReservation);
     }
 
-    private void validateNotPastDateTime(LocalDate date, ReservationTime time, LocalDateTime now) {
-        LocalDateTime reservationDateTime = LocalDateTime.of(date, time.getStartAt());
-        if (reservationDateTime.isBefore(now)) {
-            throw new ReservationException(ReservationErrorCode.PAST_DATE_NOT_ALLOWED);
+    private Reservation getReservation(long reservationId) {
+        return reservationDao.findById(reservationId)
+                .orElseThrow(() -> new ReservationException(ReservationErrorCode.RESERVATION_NOT_FOUND));
+    }
+
+    private void validateManagerStore(LoginMember loginMember, Theme theme) {
+        if (!adminStoreDao.existsByMemberIdAndStoreId(loginMember.id(), theme.getStoreId())) {
+            throw new ForbiddenException(AuthErrorCode.UNAUTHORIZED_MEMBER);
         }
     }
 
@@ -122,7 +142,7 @@ public class ReservationService {
         LocalDateTime now = LocalDateTime.now(clock);
 
         if (reservation.isNotModifiableAt(now)) {
-            throw new ReservationException(ReservationErrorCode.RESERVATION_CANCEL_DEADLINE_PASSED);
+            throw new ReservationException(ReservationErrorCode.RESERVATION_UPDATE_DEADLINE_PASSED);
         }
     }
 
@@ -140,10 +160,5 @@ public class ReservationService {
         Reservation reservation = getReservation(reservationId);
         validateModifiable(reservation);
         reservationDao.delete(reservationId);
-    }
-
-    private Reservation getReservation(long reservationId) {
-        return reservationDao.findById(reservationId)
-                .orElseThrow(() -> new ReservationException(ReservationErrorCode.RESERVATION_NOT_FOUND));
     }
 }

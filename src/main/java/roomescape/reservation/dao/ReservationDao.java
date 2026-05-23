@@ -27,6 +27,7 @@ public class ReservationDao {
 
         Theme theme = new Theme(
                 resultSet.getLong("theme_id"),
+                resultSet.getLong("store_id"),
                 resultSet.getString("theme_name"),
                 resultSet.getString("description"),
                 resultSet.getString("thumbnail")
@@ -83,6 +84,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
+                       t.store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -109,6 +111,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
+                       t.store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -126,6 +129,69 @@ public class ReservationDao {
         return jdbcTemplate.query(sql, ROW_MAPPER, name);
     }
 
+    public List<Reservation> findAllByAdminId(long adminId) {
+        String sql = """
+                SELECT r.id,
+                       r.date,
+                       m.id as member_id,
+                       m.name as member_name,
+                       m.email,
+                       m.password,
+                       m.role,
+                       rt.id as time_id,
+                       rt.start_at,
+                       t.id as theme_id,
+                       t.store_id,
+                       t.name as theme_name,
+                       t.description,
+                       t.thumbnail
+                FROM reservation AS r
+                INNER JOIN member AS m
+                ON r.member_id = m.id
+                INNER JOIN reservation_time AS rt
+                ON r.time_id = rt.id
+                INNER JOIN theme AS t
+                ON r.theme_id = t.id
+                INNER JOIN admin_store AS ms
+                ON t.store_id = ms.store_id
+                WHERE ms.member_id = ?
+                """;
+        return jdbcTemplate.query(sql, ROW_MAPPER, adminId);
+    }
+
+    public List<Reservation> findAllByNameAndMemberId(String name, long memberId) {
+        String sql = """
+                SELECT r.id,
+                       r.date,
+                       m.id as member_id,
+                       m.name as member_name,
+                       m.email,
+                       m.password,
+                       m.role,
+                       rt.id as time_id,
+                       rt.start_at,
+                       t.id as theme_id,
+                       t.store_id,
+                       t.name as theme_name,
+                       t.description,
+                       t.thumbnail
+                FROM reservation AS r
+                INNER JOIN member AS m
+                ON r.member_id = m.id
+                INNER JOIN reservation_time AS rt
+                ON r.time_id = rt.id
+                INNER JOIN theme AS t
+                ON r.theme_id = t.id
+                INNER JOIN admin_store AS ms
+                ON t.store_id = ms.store_id
+                WHERE m.name = ?
+                    AND ms.member_id = ?
+                ORDER BY r.date DESC, rt.start_at DESC
+                ;
+                """;
+        return jdbcTemplate.query(sql, ROW_MAPPER, name, memberId);
+    }
+
     public Optional<Reservation> findById(long reservationId) {
         String sql = """
                 SELECT r.id, 
@@ -138,6 +204,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
+                       t.store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
