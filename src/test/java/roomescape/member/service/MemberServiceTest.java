@@ -22,7 +22,7 @@ class MemberServiceTest extends ServiceTest {
         MemberRequest request = new MemberRequest("브라운", "brown@email.com", "password123");
 
         // when
-        MemberResponse response = memberService.create(request);
+        MemberResponse response = memberService.createUser(request);
 
         // then
         assertThat(response)
@@ -34,10 +34,10 @@ class MemberServiceTest extends ServiceTest {
     void 이미_존재하는_이메일로_회원_생성시_예외가_발생한다() {
         // given
         MemberRequest request = new MemberRequest("브라운", "brown@email.com", "password123");
-        memberService.create(request);
+        memberService.createUser(request);
 
         // when & then
-        assertThatThrownBy(() -> memberService.create(request))
+        assertThatThrownBy(() -> memberService.createUser(request))
                 .isInstanceOf(MemberException.class)
                 .hasMessage(MemberErrorCode.MEMBER_ALREADY_EXISTS.getMessage());
     }
