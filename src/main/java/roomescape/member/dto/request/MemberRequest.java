@@ -27,4 +27,8 @@ public record MemberRequest(
     public Member toMember(String encodedPassword) {
         return Member.createUser(name, email, encodedPassword);
     }
+
+    public Member toAdmin(String encodedPassword) {
+        return Member.createAdmin(name, email, encodedPassword);
+    }
 }

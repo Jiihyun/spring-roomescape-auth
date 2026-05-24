@@ -1,4 +1,4 @@
-package roomescape.member.controller;
+package roomescape.admin.controller;
 
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -12,20 +12,20 @@ import roomescape.member.dto.response.MemberResponse;
 import roomescape.member.service.MemberService;
 
 @RestController
-@RequestMapping("/members")
-public class MemberController {
+@RequestMapping("/admin/members")
+public class AdminMemberController {
 
-    private static final String LOCATION_DEFAULT_VALUE = "/members/";
+    private static final String LOCATION_DEFAULT_VALUE = "/admin/members/";
 
     private final MemberService memberService;
 
-    public MemberController(MemberService memberService) {
+    public AdminMemberController(MemberService memberService) {
         this.memberService = memberService;
     }
 
     @PostMapping()
     public ResponseEntity<MemberResponse> create(@Valid @RequestBody MemberRequest request) {
-        MemberResponse response = memberService.createUser(request);
+        MemberResponse response = memberService.createAdmin(request);
         return ResponseEntity.created(URI.create(LOCATION_DEFAULT_VALUE + response.id()))
                 .body(response);
     }

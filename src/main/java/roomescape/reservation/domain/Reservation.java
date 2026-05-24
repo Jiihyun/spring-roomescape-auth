@@ -15,14 +15,15 @@ public class Reservation {
 
     private Long id;
     private final Member member;
+    private final Long storeId;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
     public static Reservation createFutureReservation(Member member, LocalDate date,
-                                                      ReservationTime time, Theme theme, LocalDateTime now) {
+                                                      long storeId, ReservationTime time, Theme theme, LocalDateTime now) {
         validateNotPastDateTime(date, time, now);
-        return new Reservation(null, member, date, time, theme);
+        return new Reservation(null, member, storeId, date, time, theme);
     }
 
     private static void validateNotPastDateTime(LocalDate date, ReservationTime time, LocalDateTime now) {
@@ -33,19 +34,24 @@ public class Reservation {
     }
 
     public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
-        this(null, member, date, time, theme);
+        this(null, member, theme.getStoreId(), date, time, theme);
     }
 
     public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme) {
+        this(id, member, theme.getStoreId(), date, time, theme);
+    }
+
+    public Reservation(Long id, Member member, Long storeId, LocalDate date, ReservationTime time, Theme theme) {
         this.id = id;
         this.member = member;
+        this.storeId = storeId;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
     public Reservation createWithId(long id) {
-        return new Reservation(id, this.member, this.date, this.time, this.theme);
+        return new Reservation(id, this.member, this.storeId, this.date, this.time, this.theme);
     }
 
     public boolean isNotModifiableAt(LocalDateTime now) {
@@ -63,6 +69,10 @@ public class Reservation {
 
     public Member getMember() {
         return member;
+    }
+
+    public Long getStoreId() {
+        return storeId;
     }
 
     public LocalDate getDate() {
@@ -88,6 +98,7 @@ public class Reservation {
             return Objects.equals(id, reservation.id);
         }
         return Objects.equals(member, reservation.member)
+                && Objects.equals(storeId, reservation.storeId)
                 && Objects.equals(date, reservation.date) && Objects.equals(time, reservation.time)
                 && Objects.equals(theme, reservation.theme);
     }
@@ -97,6 +108,6 @@ public class Reservation {
         if (id != null) {
             return Objects.hash(id);
         }
-        return Objects.hash(member, date, time, theme);
+        return Objects.hash(member, storeId, date, time, theme);
     }
 }

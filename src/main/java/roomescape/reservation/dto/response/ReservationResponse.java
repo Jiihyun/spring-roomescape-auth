@@ -9,6 +9,7 @@ import roomescape.theme.dto.response.ThemeResponse;
 public record ReservationResponse(
         long id,
         MemberResponse member,
+        Long storeId,
         LocalDate date,
         ReservationTimeResponse time,
         ThemeResponse theme
@@ -17,6 +18,7 @@ public record ReservationResponse(
         return new ReservationResponse(
                 reservation.getId(),
                 MemberResponse.from(reservation.getMember()),
+                reservation.getStoreId(),
                 reservation.getDate(),
                 ReservationTimeResponse.from(reservation.getTime()),
                 ThemeResponse.from(reservation.getTheme())

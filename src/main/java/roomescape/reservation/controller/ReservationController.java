@@ -53,7 +53,7 @@ public class ReservationController {
     public ResponseEntity<ReservationResponse> update(LoginMember loginMember,
                                                       @PathVariable("reservationId") long reservationId,
                                                       @Valid @RequestBody ReservationRequest request) {
-        ReservationResponse response = reservationService.update(loginMember,reservationId, request);
+        ReservationResponse response = reservationService.update(loginMember, reservationId, request);
         return ResponseEntity.ok(response);
 
     }
@@ -61,7 +61,7 @@ public class ReservationController {
     @DeleteMapping("/{reservationId}")
     public ResponseEntity<Void> delete(LoginMember loginMember,
                                        @PathVariable("reservationId") long reservationId) {
-        reservationService.delete(reservationId);
+        reservationService.delete(loginMember, reservationId);
         return ResponseEntity.noContent()
                 .build();
     }

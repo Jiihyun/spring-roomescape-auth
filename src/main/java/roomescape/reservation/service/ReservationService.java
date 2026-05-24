@@ -53,19 +53,14 @@ public class ReservationService {
         Theme theme = getTheme(request.themeId());
         LocalDateTime currentDateTime = LocalDateTime.now(clock);
         Member member = getMember(loginMember);
+        validateThemeBelongsToStore(request.storeId(), theme);
+        validateManagerStore(loginMember, request.storeId());
 
         Reservation reservation = request.toReservation(member, reservationTime, theme, currentDateTime);
         validateUniqueReservation(theme.getId(), reservation.getDate(), reservationTime.getId());
 
         Reservation savedReservation = reservationDao.save(reservation);
         return ReservationResponse.from(savedReservation);
-    }
-
-    private void validateUniqueReservation(long themeId, LocalDate date, long timeId) {
-        boolean exists = reservationDao.existsByThemeAndDateAndTime(themeId, date, timeId);
-        if (exists) {
-            throw new ReservationException(ReservationErrorCode.RESERVATION_ALREADY_EXISTS);
-        }
     }
 
     private ReservationTime getTime(long timeId) {
@@ -83,6 +78,25 @@ public class ReservationService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_EXISTS));
     }
 
+    private void validateThemeBelongsToStore(long storeId, Theme theme) {
+        if (!theme.getStoreId().equals(storeId)) {
+            throw new ReservationException(ReservationErrorCode.THEME_STORE_MISMATCH);
+        }
+    }
+
+    private void validateManagerStore(LoginMember loginMember, long storeId) {
+        if (!adminStoreDao.existsByMemberIdAndStoreId(loginMember.id(), storeId)) {
+            throw new ForbiddenException(AuthErrorCode.UNAUTHORIZED_MEMBER);
+        }
+    }
+
+    private void validateUniqueReservation(long themeId, LocalDate date, long timeId) {
+        boolean exists = reservationDao.existsByThemeAndDateAndTime(themeId, date, timeId);
+        if (exists) {
+            throw new ReservationException(ReservationErrorCode.RESERVATION_ALREADY_EXISTS);
+        }
+    }
+
     public List<ReservationResponse> getReservations(LoginMember loginMember) {
         getMember(loginMember);
         List<Reservation> reservations = findReservations(loginMember);
@@ -92,7 +106,10 @@ public class ReservationService {
     }
 
     private List<Reservation> findReservations(LoginMember loginMember) {
-        return reservationDao.findAllByAdminId(loginMember.id());
+        if (loginMember.role().isAdmin()) {
+            return reservationDao.findAllByAdminId(loginMember.id());
+        }
+        return reservationDao.findAll();
     }
 
     public List<ReservationResponse> getReservationsByName(String name, LoginMember loginMember) {
@@ -113,15 +130,16 @@ public class ReservationService {
     public ReservationResponse update(LoginMember loginMember, long reservationId, ReservationRequest request) {
         Member member = getMember(loginMember);
         Reservation reservation = getReservation(reservationId);
-        validateManagerStore(loginMember, reservation.getTheme());
         validateModifiable(reservation);
 
         ReservationTime reservationTime = getTime(request.timeId());
         Theme theme = getTheme(request.themeId());
+        validateThemeBelongsToStore(request.storeId(), theme);
+        validateManagerStore(loginMember, request.storeId());
         validateUniqueReservationForUpdate(reservationId, theme, request.date(), reservationTime);
 
         Reservation updatedReservation = new Reservation(
-                reservationId, member,
+                reservationId, member, request.storeId(),
                 request.date(), reservationTime, theme);
         reservationDao.update(updatedReservation);
         return ReservationResponse.from(updatedReservation);
@@ -130,12 +148,6 @@ public class ReservationService {
     private Reservation getReservation(long reservationId) {
         return reservationDao.findById(reservationId)
                 .orElseThrow(() -> new ReservationException(ReservationErrorCode.RESERVATION_NOT_FOUND));
-    }
-
-    private void validateManagerStore(LoginMember loginMember, Theme theme) {
-        if (!adminStoreDao.existsByMemberIdAndStoreId(loginMember.id(), theme.getStoreId())) {
-            throw new ForbiddenException(AuthErrorCode.UNAUTHORIZED_MEMBER);
-        }
     }
 
     private void validateModifiable(Reservation reservation) {
@@ -156,9 +168,12 @@ public class ReservationService {
         }
     }
 
-    public void delete(long reservationId) {
+    public void delete(LoginMember loginMember, long reservationId) {
+        getMember(loginMember);
         Reservation reservation = getReservation(reservationId);
         validateModifiable(reservation);
+        validateThemeBelongsToStore(reservation.getStoreId(), reservation.getTheme());
+        validateManagerStore(loginMember, reservation.getStoreId());
         reservationDao.delete(reservationId);
     }
 }

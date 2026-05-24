@@ -1,9 +1,7 @@
 package roomescape.reservation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import roomescape.member.domain.Member;
@@ -16,6 +14,9 @@ public record ReservationRequest(
         @NotNull(message = "날짜를 입력해 주세요.")
         LocalDate date,
 
+        @NotNull(message = "매장을 선택해 주세요.")
+        Long storeId,
+
         @NotNull(message = "시간을 선택해 주세요.")
         Long timeId,
 
@@ -23,6 +24,6 @@ public record ReservationRequest(
         Long themeId
 ) {
     public Reservation toReservation(Member member, ReservationTime reservationTime, Theme theme, LocalDateTime dateTime) {
-        return Reservation.createFutureReservation(member, date, reservationTime, theme, dateTime);
+        return Reservation.createFutureReservation(member, date, storeId, reservationTime, theme, dateTime);
     }
 }

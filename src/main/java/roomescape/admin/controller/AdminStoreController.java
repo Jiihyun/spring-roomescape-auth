@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.auth.dto.LoginMember;
 import roomescape.store.dto.request.StoreRequest;
 import roomescape.store.dto.response.StoreResponse;
 import roomescape.store.service.StoreService;
@@ -26,8 +27,8 @@ public class AdminStoreController {
     }
 
     @PostMapping
-    public ResponseEntity<StoreResponse> create(@Valid @RequestBody StoreRequest request) {
-        StoreResponse response = storeService.create(request);
+    public ResponseEntity<StoreResponse> create(LoginMember loginMember, @Valid @RequestBody StoreRequest request) {
+        StoreResponse response = storeService.create(loginMember.id(), request);
         return ResponseEntity.created(URI.create(LOCATION_DEFAULT_VALUE + response.id()))
                 .body(response);
     }

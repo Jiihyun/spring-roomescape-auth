@@ -20,10 +20,18 @@ public class MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public MemberResponse create(MemberRequest request) {
+    public MemberResponse createUser(MemberRequest request) {
         validateUniqueEmail(request.email());
         String encodedPassword = passwordEncoder.encode(request.password());
         Member member = request.toMember(encodedPassword);
+        Member savedMember = memberDao.save(member);
+        return MemberResponse.from(savedMember);
+    }
+
+    public MemberResponse createAdmin(MemberRequest request) {
+        validateUniqueEmail(request.email());
+        String encodedPassword = passwordEncoder.encode(request.password());
+        Member member = request.toAdmin(encodedPassword);
         Member savedMember = memberDao.save(member);
         return MemberResponse.from(savedMember);
     }

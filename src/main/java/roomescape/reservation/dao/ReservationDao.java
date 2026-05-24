@@ -27,7 +27,7 @@ public class ReservationDao {
 
         Theme theme = new Theme(
                 resultSet.getLong("theme_id"),
-                resultSet.getLong("store_id"),
+                resultSet.getLong("theme_store_id"),
                 resultSet.getString("theme_name"),
                 resultSet.getString("description"),
                 resultSet.getString("thumbnail")
@@ -44,6 +44,7 @@ public class ReservationDao {
         return new Reservation(
                 resultSet.getLong("id"),
                 member,
+                resultSet.getLong("store_id"),
                 resultSet.getDate("date").toLocalDate(),
                 reservationTime,
                 theme
@@ -63,6 +64,7 @@ public class ReservationDao {
     public Reservation save(Reservation reservation) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("member_id", reservation.getMember().getId());
+        parameters.put("store_id", reservation.getStoreId());
         parameters.put("date", reservation.getDate());
         parameters.put("time_id", reservation.getTime().getId());
         parameters.put("theme_id", reservation.getTheme().getId());
@@ -75,6 +77,7 @@ public class ReservationDao {
     public List<Reservation> findAll() {
         String sql = """
                 SELECT r.id, 
+                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
@@ -84,7 +87,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id,
+                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -102,6 +105,7 @@ public class ReservationDao {
     public List<Reservation> findAllByName(String name) {
         String sql = """
                 SELECT r.id, 
+                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
@@ -111,7 +115,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id,
+                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -132,6 +136,7 @@ public class ReservationDao {
     public List<Reservation> findAllByAdminId(long adminId) {
         String sql = """
                 SELECT r.id,
+                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
@@ -141,7 +146,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id,
+                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -153,7 +158,7 @@ public class ReservationDao {
                 INNER JOIN theme AS t
                 ON r.theme_id = t.id
                 INNER JOIN admin_store AS ms
-                ON t.store_id = ms.store_id
+                ON r.store_id = ms.store_id
                 WHERE ms.member_id = ?
                 """;
         return jdbcTemplate.query(sql, ROW_MAPPER, adminId);
@@ -162,6 +167,7 @@ public class ReservationDao {
     public List<Reservation> findAllByNameAndMemberId(String name, long memberId) {
         String sql = """
                 SELECT r.id,
+                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
@@ -171,7 +177,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id,
+                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -183,7 +189,7 @@ public class ReservationDao {
                 INNER JOIN theme AS t
                 ON r.theme_id = t.id
                 INNER JOIN admin_store AS ms
-                ON t.store_id = ms.store_id
+                ON r.store_id = ms.store_id
                 WHERE m.name = ?
                     AND ms.member_id = ?
                 ORDER BY r.date DESC, rt.start_at DESC
@@ -195,6 +201,7 @@ public class ReservationDao {
     public Optional<Reservation> findById(long reservationId) {
         String sql = """
                 SELECT r.id, 
+                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
@@ -204,7 +211,7 @@ public class ReservationDao {
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id,
+                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
@@ -279,12 +286,13 @@ public class ReservationDao {
         String sql = """
                 UPDATE reservation
                 SET member_id = ?,
+                    store_id = ?,
                     date = ?,
                     time_id = ?,
                     theme_id = ?
                 WHERE id = ?
                 """;
-        jdbcTemplate.update(sql, reservation.getMember().getId(), reservation.getDate(),
+        jdbcTemplate.update(sql, reservation.getMember().getId(), reservation.getStoreId(), reservation.getDate(),
                 reservation.getTime().getId(), reservation.getTheme().getId(), reservation.getId());
     }
 

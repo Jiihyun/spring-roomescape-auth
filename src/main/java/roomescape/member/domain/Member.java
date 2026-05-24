@@ -14,6 +14,10 @@ public class Member {
         return new Member(null, name, email, password, Role.USER);
     }
 
+    public static Member createAdmin(String name, String email, String password) {
+        return new Member(null, name, email, password, Role.ADMIN);
+    }
+
     public Member(Long id, String name, String email, String password, Role role) {
         this.id = id;
         this.name = name;
