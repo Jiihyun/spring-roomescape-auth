@@ -7,6 +7,7 @@ import roomescape.member.domain.Member;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.exception.RoomescapeException;
+import roomescape.store.domain.Store;
 import roomescape.theme.domain.Theme;
 
 public class Reservation {
@@ -15,15 +16,15 @@ public class Reservation {
 
     private Long id;
     private final Member member;
-    private final Long storeId;
+    private final Store store;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
-    public static Reservation createFutureReservation(Member member, LocalDate date,
-                                                      long storeId, ReservationTime time, Theme theme, LocalDateTime now) {
+    public static Reservation createFutureReservation(Member member, Store store, LocalDate date,
+                                                      ReservationTime time, Theme theme, LocalDateTime now) {
         validateNotPastDateTime(date, time, now);
-        return new Reservation(null, member, storeId, date, time, theme);
+        return new Reservation(null, member, store, date, time, theme);
     }
 
     private static void validateNotPastDateTime(LocalDate date, ReservationTime time, LocalDateTime now) {
@@ -33,25 +34,21 @@ public class Reservation {
         }
     }
 
-    public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme) {
-        this(null, member, theme.getStoreId(), date, time, theme);
+    public Reservation(Member member, Store store, LocalDate date, ReservationTime time, Theme theme) {
+        this(null, member, store, date, time, theme);
     }
 
-    public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme) {
-        this(id, member, theme.getStoreId(), date, time, theme);
-    }
-
-    public Reservation(Long id, Member member, Long storeId, LocalDate date, ReservationTime time, Theme theme) {
+    public Reservation(Long id, Member member, Store store, LocalDate date, ReservationTime time, Theme theme) {
         this.id = id;
         this.member = member;
-        this.storeId = storeId;
+        this.store = store;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
     public Reservation createWithId(long id) {
-        return new Reservation(id, this.member, this.storeId, this.date, this.time, this.theme);
+        return new Reservation(id, this.member, this.store, this.date, this.time, this.theme);
     }
 
     public boolean isNotModifiableAt(LocalDateTime now) {
@@ -71,8 +68,12 @@ public class Reservation {
         return member;
     }
 
+    public Store getStore() {
+        return store;
+    }
+
     public Long getStoreId() {
-        return storeId;
+        return store.getId();
     }
 
     public LocalDate getDate() {
@@ -98,7 +99,7 @@ public class Reservation {
             return Objects.equals(id, reservation.id);
         }
         return Objects.equals(member, reservation.member)
-                && Objects.equals(storeId, reservation.storeId)
+                && Objects.equals(store, reservation.store)
                 && Objects.equals(date, reservation.date) && Objects.equals(time, reservation.time)
                 && Objects.equals(theme, reservation.theme);
     }
@@ -108,6 +109,6 @@ public class Reservation {
         if (id != null) {
             return Objects.hash(id);
         }
-        return Objects.hash(member, storeId, date, time, theme);
+        return Objects.hash(member, store, date, time, theme);
     }
 }

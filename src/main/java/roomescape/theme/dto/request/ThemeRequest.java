@@ -29,6 +29,6 @@ public record ThemeRequest(
         String thumbnail
 ) {
     public Theme toTheme() {
-        return new Theme(null, storeId, name, description, thumbnail);
+        return new Theme(name, description, thumbnail);
     }
 }

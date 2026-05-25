@@ -5,7 +5,6 @@ import java.util.Objects;
 public class Theme {
 
     private Long id;
-    private final Long storeId;
     private final String name;
     private final String description;
     private final String thumbnail;
@@ -15,27 +14,18 @@ public class Theme {
     }
 
     public Theme(Long id, String name, String description, String thumbnail) {
-        this(id, null, name, description, thumbnail);
-    }
-
-    public Theme(Long id, Long storeId, String name, String description, String thumbnail) {
         this.id = id;
-        this.storeId = storeId;
         this.name = name;
         this.description = description;
         this.thumbnail = thumbnail;
     }
 
     public Theme createWithId(Long id) {
-        return new Theme(id, this.storeId, this.name, this.description, this.thumbnail);
+        return new Theme(id, this.name, this.description, this.thumbnail);
     }
 
     public Long getId() {
         return id;
-    }
-
-    public Long getStoreId() {
-        return storeId;
     }
 
     public String getName() {
@@ -60,7 +50,7 @@ public class Theme {
         if (id != null && theme.id != null) {
             return Objects.equals(id, theme.id);
         }
-        return Objects.equals(storeId, theme.storeId) && Objects.equals(name, theme.name) && Objects.equals(description, theme.description)
+        return Objects.equals(name, theme.name) && Objects.equals(description, theme.description)
                 && Objects.equals(thumbnail, theme.thumbnail);
     }
 
@@ -69,6 +59,6 @@ public class Theme {
         if (id != null) {
             return Objects.hash(id);
         }
-        return Objects.hash(storeId, name, description, thumbnail);
+        return Objects.hash(name, description, thumbnail);
     }
 }

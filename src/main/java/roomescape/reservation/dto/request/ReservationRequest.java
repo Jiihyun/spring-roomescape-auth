@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import roomescape.member.domain.Member;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.store.domain.Store;
 import roomescape.theme.domain.Theme;
 
 public record ReservationRequest(
@@ -23,7 +24,8 @@ public record ReservationRequest(
         @NotNull(message = "테마를 선택해 주세요.")
         Long themeId
 ) {
-    public Reservation toReservation(Member member, ReservationTime reservationTime, Theme theme, LocalDateTime dateTime) {
-        return Reservation.createFutureReservation(member, date, storeId, reservationTime, theme, dateTime);
+    public Reservation toReservation(Member member, Store store, ReservationTime reservationTime,
+                                     Theme theme, LocalDateTime dateTime) {
+        return Reservation.createFutureReservation(member, store, date, reservationTime, theme, dateTime);
     }
 }

@@ -21,29 +21,45 @@ VALUES ('강남점'),
        ('홍대점');
 
 -- theme (12 unique themes with high-stability thumbnails)
-INSERT INTO theme (store_id, name, description, thumbnail)
-VALUES (1, '공포의 저택', '오래된 저택에서 탈출하세요',
+INSERT INTO theme (name, description, thumbnail)
+VALUES ('공포의 저택', '오래된 저택에서 탈출하세요',
         'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=400&auto=format&fit=crop'),
-       (1, '사라진 연구소', '비밀 연구소의 진실을 밝혀내세요',
+       ('사라진 연구소', '비밀 연구소의 진실을 밝혀내세요',
         'https://images.unsplash.com/photo-1581093458791-9f3c3250f8b9?q=80&w=400&auto=format&fit=crop'),
-       (1, '시간 여행자', '시간의 틈에서 탈출하세요',
+       ('시간 여행자', '시간의 틈에서 탈출하세요',
         'https://images.unsplash.com/photo-1501139083538-0139583c060f?q=80&w=400&auto=format&fit=crop'),
-       (1, '감옥 탈출', '제한 시간 안에 감옥을 탈출하세요',
+       ('감옥 탈출', '제한 시간 안에 감옥을 탈출하세요',
         'https://images.unsplash.com/photo-1552508744-1696d4464960?q=80&w=400&auto=format&fit=crop'),
-       (2, '마법사의 방', '마법사의 숨겨진 방을 탐험하세요', 'https://picsum.photos/seed/wizard-room/400/300'),
-       (2, '좀비 바이러스', '바이러스가 퍼진 도시에서 살아남으세요',
+       ('마법사의 방', '마법사의 숨겨진 방을 탐험하세요', 'https://picsum.photos/seed/wizard-room/400/300'),
+       ('좀비 바이러스', '바이러스가 퍼진 도시에서 살아남으세요',
         'https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=400&auto=format&fit=crop'),
-       (2, '해적의 보물', '해적선에 숨겨진 보물을 찾으세요',
+       ('해적의 보물', '해적선에 숨겨진 보물을 찾으세요',
         'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop'),
-       (2, '스파이 미션', '비밀 요원이 되어 임무를 완수하세요',
+       ('스파이 미션', '비밀 요원이 되어 임무를 완수하세요',
         'https://images.unsplash.com/photo-1524178232363-1fb28f74b0cd?q=80&w=400&auto=format&fit=crop'),
-       (3, '우주 정거장', '고장난 우주 정거장에서 탈출하세요',
+       ('우주 정거장', '고장난 우주 정거장에서 탈출하세요',
         'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400&auto=format&fit=crop'),
-       (3, '고대 유적', '고대 유적의 수수께끼를 풀어보세요',
+       ('고대 유적', '고대 유적의 수수께끼를 풀어보세요',
         'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=400&auto=format&fit=crop'),
-       (3, '미스터리 호텔', '호텔에서 벌어진 사건을 해결하세요',
+       ('미스터리 호텔', '호텔에서 벌어진 사건을 해결하세요',
         'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop'),
-       (3, '지하 벙커', '폐쇄된 지하 벙커에서 탈출하세요', 'https://picsum.photos/seed/bunker/400/300');
+       ('지하 벙커', '폐쇄된 지하 벙커에서 탈출하세요', 'https://picsum.photos/seed/bunker/400/300');
+
+-- store_theme
+INSERT INTO store_theme (store_id, theme_id)
+VALUES (1, 1),
+       (3, 1),
+       (1, 2),
+       (1, 3),
+       (1, 4),
+       (2, 5),
+       (2, 6),
+       (2, 7),
+       (2, 8),
+       (3, 9),
+       (3, 10),
+       (3, 11),
+       (3, 12);
 
 -- member
 INSERT INTO member (name, email, password, role)

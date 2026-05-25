@@ -34,22 +34,29 @@ CREATE TABLE reservation_time
 CREATE TABLE theme
 (
     id          BIGINT       NOT NULL AUTO_INCREMENT,
-    store_id    BIGINT       NOT NULL,
     name        VARCHAR(30)  NOT NULL,
     description VARCHAR(100) NOT NULL,
     thumbnail   VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (store_id) REFERENCES store (id)
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE store_theme
+(
+    store_id BIGINT NOT NULL,
+    theme_id BIGINT NOT NULL,
+    PRIMARY KEY (store_id, theme_id),
+    FOREIGN KEY (store_id) REFERENCES store (id),
+    FOREIGN KEY (theme_id) REFERENCES theme (id)
 );
 
 CREATE TABLE reservation
 (
     id        BIGINT NOT NULL AUTO_INCREMENT,
-    member_id BIGINT,
+    member_id BIGINT NOT NULL,
     store_id  BIGINT NOT NULL,
     `date`    DATE   NOT NULL,
-    time_id   BIGINT,
-    theme_id  BIGINT,
+    time_id   BIGINT NOT NULL,
+    theme_id  BIGINT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (member_id) REFERENCES member (id),
     FOREIGN KEY (store_id) REFERENCES store (id),

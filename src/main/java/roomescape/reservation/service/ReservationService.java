@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import roomescape.auth.dto.LoginMember;
+import roomescape.auth.exception.AuthErrorCode;
 import roomescape.exception.RoomescapeException;
 import roomescape.member.exception.MemberErrorCode;
 import roomescape.member.dao.MemberDao;
@@ -21,6 +22,9 @@ import roomescape.reservationtime.dao.ReservationTimeDao;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.exception.ReservationTimeErrorCode;
 import roomescape.store.dao.AdminStoreDao;
+import roomescape.store.dao.StoreDao;
+import roomescape.store.domain.Store;
+import roomescape.storetheme.dao.StoreThemeDao;
 import roomescape.theme.dao.ThemeDao;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.exception.ThemeErrorCode;
@@ -33,15 +37,20 @@ public class ReservationService {
     private final ReservationDao reservationDao;
     private final ReservationTimeDao reservationTimeDao;
     private final ThemeDao themeDao;
+    private final StoreDao storeDao;
+    private final StoreThemeDao storeThemeDao;
     private final MemberDao memberDao;
     private final AdminStoreDao adminStoreDao;
     private final Clock clock;
 
     public ReservationService(ReservationDao reservationDao, ReservationTimeDao reservationTimeDao,
-                              MemberDao memberDao, ThemeDao themeDao, AdminStoreDao adminStoreDao, Clock clock) {
+                              MemberDao memberDao, ThemeDao themeDao, StoreDao storeDao,
+                              StoreThemeDao storeThemeDao, AdminStoreDao adminStoreDao, Clock clock) {
         this.reservationDao = reservationDao;
         this.reservationTimeDao = reservationTimeDao;
         this.themeDao = themeDao;
+        this.storeDao = storeDao;
+        this.storeThemeDao = storeThemeDao;
         this.memberDao = memberDao;
         this.adminStoreDao = adminStoreDao;
         this.clock = clock;
@@ -49,14 +58,15 @@ public class ReservationService {
 
     public ReservationResponse create(LoginMember loginMember, ReservationRequest request) {
         ReservationTime reservationTime = getTime(request.timeId());
+        Store store = getStore(request.storeId());
         Theme theme = getTheme(request.themeId());
         LocalDateTime currentDateTime = LocalDateTime.now(clock);
         Member member = getMember(loginMember);
-        validateThemeBelongsToStore(request.storeId(), theme);
+        validateStoreThemeExists(request.storeId(), theme.getId());
         validateManagerStore(member, request.storeId());
 
-        Reservation reservation = request.toReservation(member, reservationTime, theme, currentDateTime);
-        validateUniqueReservation(theme.getId(), reservation.getDate(), reservationTime.getId());
+        Reservation reservation = request.toReservation(member, store, reservationTime, theme, currentDateTime);
+        validateUniqueReservation(store.getId(), theme.getId(), reservation.getDate(), reservationTime.getId());
 
         Reservation savedReservation = reservationDao.save(reservation);
         return ReservationResponse.from(savedReservation);
@@ -72,13 +82,18 @@ public class ReservationService {
                 .orElseThrow(() -> new RoomescapeException(ThemeErrorCode.THEME_NOT_FOUND));
     }
 
+    private Store getStore(long storeId) {
+        return storeDao.findById(storeId)
+                .orElseThrow(() -> new RoomescapeException(ThemeErrorCode.STORE_NOT_FOUND));
+    }
+
     private Member getMember(LoginMember loginMember) {
         return memberDao.findById(loginMember.id())
                 .orElseThrow(() -> new RoomescapeException(MemberErrorCode.MEMBER_NOT_EXISTS));
     }
 
-    private void validateThemeBelongsToStore(long storeId, Theme theme) {
-        if (!theme.getStoreId().equals(storeId)) {
+    private void validateStoreThemeExists(long storeId, long themeId) {
+        if (!storeThemeDao.existsByStoreIdAndThemeId(storeId, themeId)) {
             throw new RoomescapeException(ReservationErrorCode.THEME_STORE_MISMATCH);
         }
     }
@@ -86,12 +101,12 @@ public class ReservationService {
     private void validateManagerStore(Member member, long storeId) {
         if (!adminStoreDao.existsByMemberIdAndStoreId(member.getId(), storeId)) {
             log.warn("관리자가 담당하지 않은 매장에 접근 시도 - memberId={}, storeId={}", member.getId(), storeId);
-            throw new RoomescapeException(ThemeErrorCode.STORE_NOT_FOUND);
+            throw new RoomescapeException(AuthErrorCode.ADMIN_ACCESS_DENIED);
         }
     }
 
-    private void validateUniqueReservation(long themeId, LocalDate date, long timeId) {
-        boolean exists = reservationDao.existsByThemeAndDateAndTime(themeId, date, timeId);
+    private void validateUniqueReservation(long storeId, long themeId, LocalDate date, long timeId) {
+        boolean exists = reservationDao.existsByStoreAndThemeAndDateAndTime(storeId, themeId, date, timeId);
         if (exists) {
             throw new RoomescapeException(ReservationErrorCode.RESERVATION_ALREADY_EXISTS);
         }
@@ -133,14 +148,15 @@ public class ReservationService {
         validateModifiable(reservation);
 
         ReservationTime reservationTime = getTime(request.timeId());
+        Store store = getStore(request.storeId());
         Theme theme = getTheme(request.themeId());
-        validateThemeBelongsToStore(request.storeId(), theme);
+        validateStoreThemeExists(request.storeId(), theme.getId());
         validateManagerStore(member, request.storeId());
-        validateUniqueReservationForUpdate(reservationId, theme, request.date(), reservationTime);
+        validateUniqueReservationForUpdate(reservationId, store, theme, request.date(), reservationTime);
 
-        Reservation updatedReservation = new Reservation(
-                reservationId, member, request.storeId(),
-                request.date(), reservationTime, theme);
+        Reservation updatedReservation = Reservation.createFutureReservation(
+                member, store, request.date(), reservationTime, theme, LocalDateTime.now(clock)
+        ).createWithId(reservationId);
         reservationDao.update(updatedReservation);
         return ReservationResponse.from(updatedReservation);
     }
@@ -158,10 +174,10 @@ public class ReservationService {
         }
     }
 
-    private void validateUniqueReservationForUpdate(long reservationId, Theme theme,
+    private void validateUniqueReservationForUpdate(long reservationId, Store store, Theme theme,
                                                     LocalDate date, ReservationTime reservationTime) {
-        boolean exists = reservationDao.existsByThemeAndDateAndTimeAndIdNot(
-                theme.getId(), date,
+        boolean exists = reservationDao.existsByStoreAndThemeAndDateAndTimeAndIdNot(
+                store.getId(), theme.getId(), date,
                 reservationTime.getId(), reservationId);
         if (exists) {
             throw new RoomescapeException(ReservationErrorCode.RESERVATION_ALREADY_EXISTS);
@@ -172,7 +188,7 @@ public class ReservationService {
         Member member = getMember(loginMember);
         Reservation reservation = getReservation(reservationId);
         validateModifiable(reservation);
-        validateThemeBelongsToStore(reservation.getStoreId(), reservation.getTheme());
+        validateStoreThemeExists(reservation.getStoreId(), reservation.getTheme().getId());
         validateManagerStore(member, reservation.getStoreId());
         reservationDao.delete(reservationId);
     }

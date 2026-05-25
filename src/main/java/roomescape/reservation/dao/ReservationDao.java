@@ -14,6 +14,7 @@ import roomescape.member.domain.Member;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Role;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.store.domain.Store;
 import roomescape.theme.domain.Theme;
 
 @Repository
@@ -27,10 +28,14 @@ public class ReservationDao {
 
         Theme theme = new Theme(
                 resultSet.getLong("theme_id"),
-                resultSet.getLong("theme_store_id"),
                 resultSet.getString("theme_name"),
                 resultSet.getString("description"),
                 resultSet.getString("thumbnail")
+        );
+
+        Store store = new Store(
+                resultSet.getLong("store_id"),
+                resultSet.getString("store_name")
         );
 
         Member member = new Member(
@@ -44,7 +49,7 @@ public class ReservationDao {
         return new Reservation(
                 resultSet.getLong("id"),
                 member,
-                resultSet.getLong("store_id"),
+                store,
                 resultSet.getDate("date").toLocalDate(),
                 reservationTime,
                 theme
@@ -77,23 +82,25 @@ public class ReservationDao {
     public List<Reservation> findAll() {
         String sql = """
                 SELECT r.id, 
-                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
                        m.email,
                        m.password,
                        m.role,
+                       s.id as store_id,
+                       s.name as store_name,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
                 INNER JOIN member AS m 
                 ON r.member_id = m.id
+                INNER JOIN store AS s
+                ON r.store_id = s.id
                 INNER JOIN reservation_time AS rt 
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t 
@@ -105,23 +112,25 @@ public class ReservationDao {
     public List<Reservation> findAllByName(String name) {
         String sql = """
                 SELECT r.id, 
-                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
                        m.email,
                        m.password,
                        m.role,
+                       s.id as store_id,
+                       s.name as store_name,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
                 INNER JOIN member AS m 
                 ON r.member_id = m.id
+                INNER JOIN store AS s
+                ON r.store_id = s.id
                 INNER JOIN reservation_time AS rt 
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t 
@@ -136,23 +145,25 @@ public class ReservationDao {
     public List<Reservation> findAllByAdminId(long adminId) {
         String sql = """
                 SELECT r.id,
-                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
                        m.email,
                        m.password,
                        m.role,
+                       s.id as store_id,
+                       s.name as store_name,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
                 INNER JOIN member AS m
                 ON r.member_id = m.id
+                INNER JOIN store AS s
+                ON r.store_id = s.id
                 INNER JOIN reservation_time AS rt
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t
@@ -167,23 +178,25 @@ public class ReservationDao {
     public List<Reservation> findAllByNameAndMemberId(String name, long memberId) {
         String sql = """
                 SELECT r.id,
-                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
                        m.email,
                        m.password,
                        m.role,
+                       s.id as store_id,
+                       s.name as store_name,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
                 INNER JOIN member AS m
                 ON r.member_id = m.id
+                INNER JOIN store AS s
+                ON r.store_id = s.id
                 INNER JOIN reservation_time AS rt
                 ON r.time_id = rt.id
                 INNER JOIN theme AS t
@@ -201,23 +214,25 @@ public class ReservationDao {
     public Optional<Reservation> findById(long reservationId) {
         String sql = """
                 SELECT r.id, 
-                       r.store_id,
                        r.date,
                        m.id as member_id,
                        m.name as member_name,
                        m.email,
                        m.password,
                        m.role,
+                       s.id as store_id,
+                       s.name as store_name,
                        rt.id as time_id,
                        rt.start_at,
                        t.id as theme_id,
-                       t.store_id as theme_store_id,
                        t.name as theme_name,
                        t.description,
                        t.thumbnail
                 FROM reservation AS r
                 INNER JOIN member AS m 
                 ON r.member_id = m.id
+                INNER JOIN store AS s
+                ON r.store_id = s.id
                 INNER JOIN reservation_time AS rt 
                     ON r.time_id = rt.id
                 INNER JOIN theme AS t 
@@ -254,17 +269,50 @@ public class ReservationDao {
         return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, boolean.class, themeId));
     }
 
+    public boolean existsByStoreAndThemeAndDateAndTime(long storeId, long themeId, LocalDate date,
+                                                       long reservationTimeId) {
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM reservation
+                    WHERE store_id = ?
+                        AND theme_id = ?
+                        AND date = ? 
+                        AND time_id = ?
+                )
+                """;
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, boolean.class, storeId, themeId, date,
+                reservationTimeId));
+    }
+
     public boolean existsByThemeAndDateAndTime(long themeId, LocalDate date, long reservationTimeId) {
         String sql = """
                 SELECT EXISTS (
                     SELECT 1
                     FROM reservation
                     WHERE theme_id = ?
-                        AND date = ? 
+                        AND date = ?
                         AND time_id = ?
                 )
                 """;
         return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, boolean.class, themeId, date, reservationTimeId));
+    }
+
+    public boolean existsByStoreAndThemeAndDateAndTimeAndIdNot(long storeId, long themeId, LocalDate date,
+                                                               long reservationTimeId, long reservationId) {
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM reservation
+                    WHERE store_id = ?
+                      AND theme_id = ?
+                      AND date = ?
+                      AND time_id = ?
+                      AND id != ?
+                )
+                """;
+        return jdbcTemplate.queryForObject(sql, Boolean.class, storeId, themeId, date, reservationTimeId,
+                reservationId);
     }
 
     public boolean existsByThemeAndDateAndTimeAndIdNot(long themeId, LocalDate date,
