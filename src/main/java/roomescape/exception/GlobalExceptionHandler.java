@@ -1,9 +1,12 @@
 package roomescape.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,6 +26,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final MessageSource messageSource;
+    private final DomainErrorHttpMapper httpMapper;
+
+    public GlobalExceptionHandler(final MessageSource messageSource, final DomainErrorHttpMapper httpMapper) {
+        this.messageSource = messageSource;
+        this.httpMapper = httpMapper;
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception,
@@ -32,12 +43,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ) {
         CommonErrorCode errorCode = CommonErrorCode.INVALID_REQUEST_BODY;
         String message = extractFieldErrorMessage(exception);
-        log.warn("요청 검증 실패: path={}, errorCode={}, message={}",
-                getPath(request), errorCode.getCode(), message);
-
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ErrorResponse(errorCode.getCode(), message));
+                .status(httpMapper.statusOf(errorCode))
+                .body(new ErrorResponse(errorCode.name(), message));
     }
 
     private String extractFieldErrorMessage(MethodArgumentNotValidException exception) {
@@ -46,7 +54,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .stream()
                 .findFirst()
                 .map(FieldError::getDefaultMessage)
-                .orElse(CommonErrorCode.INVALID_REQUEST_BODY.getMessage());
+                .orElseGet(() -> messageSource.getMessage(
+                        CommonErrorCode.INVALID_REQUEST_BODY.messageKey(),
+                        null,
+                        LocaleContextHolder.getLocale()
+                ));
     }
 
     @Override
@@ -57,12 +69,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         CommonErrorCode errorCode = CommonErrorCode.INVALID_REQUEST_BODY;
-        log.warn("요청 본문 파싱 실패: path={}, errorCode={}",
-                getPath(request), errorCode.getCode());
-
+        String message = messageSource.getMessage(
+                errorCode.messageKey(),
+                null,
+                LocaleContextHolder.getLocale()
+        );
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ErrorResponse(errorCode));
+                .status(httpMapper.statusOf(errorCode))
+                .body(new ErrorResponse(errorCode.name(), message));
     }
 
     @Override
@@ -73,12 +87,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         CommonErrorCode errorCode = CommonErrorCode.INVALID_REQUEST_PARAMETER_TYPE;
-        log.warn("요청 파라미터 타입 불일치: path={}, errorCode={}, parameter={}",
-                getPath(request), errorCode.getCode(), exception.getPropertyName());
-
+        String message = messageSource.getMessage(
+                errorCode.messageKey(),
+                null,
+                LocaleContextHolder.getLocale()
+        );
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ErrorResponse(errorCode));
+                .status(httpMapper.statusOf(errorCode))
+                .body(new ErrorResponse(errorCode.name(), message));
     }
 
     @Override
@@ -112,22 +128,38 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(RoomescapeException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(RoomescapeException roomescapeException) {
+    public ResponseEntity<ErrorResponse> handleBusinessException(RoomescapeException roomescapeException,
+                                                                 Locale locale) {
         ErrorCode errorCode = roomescapeException.getExceptionCode();
-        log.warn("비즈니스 예외 발생: errorCode={}, message={}",
-                errorCode.getCode(), roomescapeException.getMessage());
-
+        String message = messageSource.getMessage(
+                errorCode.messageKey(),
+                null,
+                locale
+        );
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ErrorResponse(errorCode));
+                .status(httpMapper.statusOf(errorCode))
+                .body(new ErrorResponse(
+                        errorCode.name(),
+                        message
+                ));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception exception, HttpServletRequest request) {
         log.error("예상하지 못한 서버 오류 발생: method={}, path={}",
                 request.getMethod(), request.getRequestURI(), exception);
+
+        CommonErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
+        String message = messageSource.getMessage(
+                errorCode.messageKey(),
+                null,
+                LocaleContextHolder.getLocale()
+        );
         return ResponseEntity
-                .status(CommonErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(new ErrorResponse(CommonErrorCode.INTERNAL_SERVER_ERROR));
+                .status(httpMapper.statusOf(errorCode))
+                .body(new ErrorResponse(
+                        errorCode.name(),
+                        message
+                ));
     }
 }

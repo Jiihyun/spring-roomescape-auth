@@ -4,8 +4,8 @@ public class RoomescapeException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public RoomescapeException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
+    public RoomescapeException(final ErrorCode errorCode) {
+        super(errorCode.name());
         this.errorCode = errorCode;
     }
 

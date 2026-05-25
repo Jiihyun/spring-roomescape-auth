@@ -2,12 +2,12 @@ package roomescape.member.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import roomescape.member.MemberErrorCode;
+import roomescape.member.exception.MemberErrorCode;
 import roomescape.member.dao.MemberDao;
 import roomescape.member.domain.Member;
 import roomescape.member.dto.request.MemberRequest;
 import roomescape.member.dto.response.MemberResponse;
-import roomescape.member.exception.MemberException;
+import roomescape.exception.RoomescapeException;
 
 @Service
 public class MemberService {
@@ -39,7 +39,7 @@ public class MemberService {
     public void validateUniqueEmail(String email) {
         boolean exists = memberDao.existsByEmail(email);
         if (exists) {
-            throw new MemberException(MemberErrorCode.MEMBER_ALREADY_EXISTS);
+            throw new RoomescapeException(MemberErrorCode.MEMBER_ALREADY_EXISTS);
         }
     }
 }

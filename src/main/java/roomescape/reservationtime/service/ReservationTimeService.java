@@ -13,12 +13,10 @@ import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.dto.request.ReservationTimeRequest;
 import roomescape.reservationtime.dto.response.AvailableReservationTimeResponse;
 import roomescape.reservationtime.dto.response.ReservationTimeResponse;
+import roomescape.exception.RoomescapeException;
 import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.reservationtime.exception.ReservationTimeErrorCode;
 import roomescape.theme.exception.ThemeErrorCode;
-import roomescape.reservation.exception.ReservationException;
-import roomescape.reservationtime.exception.ReservationTimeException;
-import roomescape.theme.exception.ThemeException;
 
 @Service
 public class ReservationTimeService {
@@ -46,7 +44,7 @@ public class ReservationTimeService {
     private void validateUniqueTime(LocalTime startAt) {
         boolean exists = reservationTimeDao.existsByStartAt(startAt);
         if (exists) {
-            throw new ReservationTimeException(ReservationTimeErrorCode.RESERVATION_TIME_ALREADY_EXISTS);
+            throw new RoomescapeException(ReservationTimeErrorCode.RESERVATION_TIME_ALREADY_EXISTS);
         }
     }
 
@@ -62,14 +60,14 @@ public class ReservationTimeService {
     private void validateTheme(long themeId) {
         boolean exists = themeDao.existsById(themeId);
         if (!exists) {
-            throw new ThemeException(ThemeErrorCode.THEME_NOT_FOUND);
+            throw new RoomescapeException(ThemeErrorCode.THEME_NOT_FOUND);
         }
     }
 
     private void validateDate(LocalDate date) {
         boolean exists = date.isBefore(LocalDate.now(clock));
         if (exists) {
-            throw new ReservationException(ReservationErrorCode.PAST_DATE_NOT_ALLOWED);
+            throw new RoomescapeException(ReservationErrorCode.PAST_DATE_NOT_ALLOWED);
         }
     }
 
@@ -78,13 +76,13 @@ public class ReservationTimeService {
         int affectedRows = reservationTimeDao.delete(reservationTimeId);
 
         if (affectedRows == 0) {
-            throw new ReservationTimeException(ReservationTimeErrorCode.RESERVATION_TIME_NOT_FOUND);
+            throw new RoomescapeException(ReservationTimeErrorCode.RESERVATION_TIME_NOT_FOUND);
         }
     }
 
     private void validateReservationNotExistsBy(long reservationTimeId) {
         if (reservationDao.existsByReservationTime(reservationTimeId)) {
-            throw new ReservationTimeException(ReservationTimeErrorCode.RESERVATION_TIME_HAS_RESERVATION);
+            throw new RoomescapeException(ReservationTimeErrorCode.RESERVATION_TIME_HAS_RESERVATION);
         }
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import roomescape.auth.SessionManager;
 import roomescape.auth.dto.LoginMember;
 import roomescape.auth.exception.AuthErrorCode;
-import roomescape.auth.exception.ForbiddenException;
+import roomescape.exception.RoomescapeException;
 
 @Component
 public class AdminAuthInterceptor implements HandlerInterceptor {
@@ -27,7 +27,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         LoginMember member = sessionManager.getLoginMember(request);
 
         if (!member.role().isAdmin()) {
-            throw new ForbiddenException(AuthErrorCode.UNAUTHORIZED_MEMBER);
+            throw new RoomescapeException(AuthErrorCode.ADMIN_ACCESS_DENIED);
         }
         return true;
     }

@@ -6,7 +6,7 @@ import java.util.Objects;
 import roomescape.member.domain.Member;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservation.exception.ReservationErrorCode;
-import roomescape.reservation.exception.ReservationException;
+import roomescape.exception.RoomescapeException;
 import roomescape.theme.domain.Theme;
 
 public class Reservation {
@@ -29,7 +29,7 @@ public class Reservation {
     private static void validateNotPastDateTime(LocalDate date, ReservationTime time, LocalDateTime now) {
         LocalDateTime reservationDateTime = LocalDateTime.of(date, time.getStartAt());
         if (reservationDateTime.isBefore(now)) {
-            throw new ReservationException(ReservationErrorCode.PAST_DATE_NOT_ALLOWED);
+            throw new RoomescapeException(ReservationErrorCode.PAST_DATE_NOT_ALLOWED);
         }
     }
 

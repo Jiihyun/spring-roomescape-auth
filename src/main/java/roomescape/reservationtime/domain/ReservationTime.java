@@ -2,8 +2,8 @@ package roomescape.reservationtime.domain;
 
 import java.time.LocalTime;
 import java.util.Objects;
+import roomescape.exception.RoomescapeException;
 import roomescape.reservationtime.exception.ReservationTimeErrorCode;
-import roomescape.reservationtime.exception.ReservationTimeException;
 
 public class ReservationTime {
 
@@ -30,13 +30,13 @@ public class ReservationTime {
 
     private void validateRange(LocalTime startAt) {
         if (startAt.isBefore(OPEN_TIME) || startAt.isAfter(LAST_TIME)) {
-            throw new ReservationTimeException(ReservationTimeErrorCode.INVALID_RESERVATION_TIME_RANGE);
+            throw new RoomescapeException(ReservationTimeErrorCode.INVALID_RESERVATION_TIME_RANGE);
         }
     }
 
     private void validateUnit(LocalTime startAt) {
         if (startAt.getMinute() != 0) {
-            throw new ReservationTimeException(ReservationTimeErrorCode.INVALID_RESERVATION_TIME_UNIT);
+            throw new RoomescapeException(ReservationTimeErrorCode.INVALID_RESERVATION_TIME_UNIT);
         }
     }
 

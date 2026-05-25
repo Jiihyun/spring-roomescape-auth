@@ -10,8 +10,8 @@ import roomescape.theme.dao.ThemeDao;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.dto.request.ThemeRequest;
 import roomescape.theme.dto.response.ThemeResponse;
+import roomescape.exception.RoomescapeException;
 import roomescape.theme.exception.ThemeErrorCode;
-import roomescape.theme.exception.ThemeException;
 
 @Service
 public class ThemeService {
@@ -40,14 +40,14 @@ public class ThemeService {
 
     private void validateStoreExists(long storeId) {
         if (!storeDao.existsById(storeId)) {
-            throw new ThemeException(ThemeErrorCode.STORE_NOT_FOUND);
+            throw new RoomescapeException(ThemeErrorCode.STORE_NOT_FOUND);
         }
     }
 
     private void validateUniqueTheme(String name) {
         boolean exists = themeDao.existsByName(name);
         if (exists) {
-            throw new ThemeException(ThemeErrorCode.THEME_ALREADY_EXISTS);
+            throw new RoomescapeException(ThemeErrorCode.THEME_ALREADY_EXISTS);
         }
     }
 
@@ -72,13 +72,13 @@ public class ThemeService {
         int affectedRows = themeDao.delete(themeId);
 
         if (affectedRows == 0) {
-            throw new ThemeException(ThemeErrorCode.THEME_NOT_FOUND);
+            throw new RoomescapeException(ThemeErrorCode.THEME_NOT_FOUND);
         }
     }
 
     private void validateReservationNotExistsBy(long themeId) {
         if (reservationDao.existsByTheme(themeId)) {
-            throw new ThemeException(ThemeErrorCode.THEME_HAS_RESERVATION);
+            throw new RoomescapeException(ThemeErrorCode.THEME_HAS_RESERVATION);
         }
     }
 }

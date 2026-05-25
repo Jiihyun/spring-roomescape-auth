@@ -1,12 +1,10 @@
 package roomescape.exception;
 
-import org.springframework.http.HttpStatus;
-
 public interface ErrorCode {
 
-    String getCode();
+    String name();
 
-    HttpStatus getHttpStatus();
-
-    String getMessage();
+    default String messageKey() {
+        return "error." + name().toLowerCase();
+    }
 }

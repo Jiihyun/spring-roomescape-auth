@@ -1,35 +1,12 @@
 package roomescape.auth.exception;
 
-import org.springframework.http.HttpStatus;
 import roomescape.exception.ErrorCode;
 
 public enum AuthErrorCode implements ErrorCode {
 
-    AUTHENTICATION_NEEDED(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
-    INVALID_LOGIN(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
-    UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "접근 권한이 없는 사용자입니다."),
+    AUTHENTICATION_NEEDED,
+    INVALID_LOGIN,
+    ADMIN_ACCESS_DENIED,
+    MANAGER_NOT_ASSIGNED_TO_STORE,
     ;
-
-    private final HttpStatus httpStatus;
-    private final String message;
-
-    AuthErrorCode(HttpStatus httpStatus, String message) {
-        this.httpStatus = httpStatus;
-        this.message = message;
-    }
-
-    @Override
-    public String getCode() {
-        return name();
-    }
-
-    @Override
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
 }

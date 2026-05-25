@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import roomescape.auth.dto.LoginMember;
 import roomescape.auth.dto.LoginRequest;
 import roomescape.auth.exception.AuthErrorCode;
-import roomescape.auth.exception.UnauthorizedException;
+import roomescape.exception.RoomescapeException;
 import roomescape.member.dao.MemberDao;
 import roomescape.member.domain.Member;
 
@@ -22,10 +22,10 @@ public class AuthService {
 
     public LoginMember login(LoginRequest request) {
         Member member = memberDao.findByEmail(request.email())
-                .orElseThrow(() -> new UnauthorizedException(AuthErrorCode.INVALID_LOGIN));
+                .orElseThrow(() -> new RoomescapeException(AuthErrorCode.INVALID_LOGIN));
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new UnauthorizedException(AuthErrorCode.INVALID_LOGIN);
+            throw new RoomescapeException(AuthErrorCode.INVALID_LOGIN);
         }
         return new LoginMember(member.getId(), member.getName(), member.getEmail(), member.getRole());
     }
